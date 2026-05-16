@@ -50,7 +50,7 @@ export async function attachUser(req, _res, next) {
       { email },
       {
         $setOnInsert: {
-          name: "Gaon Veda Customer",
+          name: "GAONVEDA Customer",
           email,
           avatarInitials: "GV",
           addresses: [],

@@ -1,5 +1,5 @@
 /**
- * Centralized error handler middleware for the Gaon Veda API.
+ * Centralized error handler middleware for the GAONVEDA API.
  *
  * - Operational errors (AppError) return their message + status code.
  * - Mongoose validation errors are mapped to 400 with field-level messages.

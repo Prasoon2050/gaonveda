@@ -68,7 +68,7 @@ async function seed() {
     }
   }
 
-  console.log("Gaon Veda seed data is ready.");
+  console.log("GAONVEDA seed data is ready.");
   process.exit(0);
 }
 

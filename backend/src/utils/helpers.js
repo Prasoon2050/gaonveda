@@ -1,5 +1,5 @@
 /**
- * Shared utility functions for the Gaon Veda API.
+ * Shared utility functions for the GAONVEDA API.
  */
 
 /**

@@ -70,7 +70,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
         <div className="commerce-nav-inner">
           <Link className="commerce-brand" href="/">
             <img src="/logo.png" alt="" />
-            Gaon Veda
+            GAONVEDA
           </Link>
           <nav>
             <Link href="/products">Shop</Link>

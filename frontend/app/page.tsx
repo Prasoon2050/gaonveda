@@ -73,8 +73,8 @@ export default async function Home() {
       <nav className="top-nav">
         <div className="nav-inner">
           <a className="brand" href="#">
-            <img src={images.logo} alt="Gaon Veda Logo" />
-            <span>Gaon Veda</span>
+            <img src={images.logo} alt="GAONVEDA Logo" />
+            <span>GAONVEDA</span>
           </a>
           <div className="nav-links">
             <a href="#shop">Shop</a>
@@ -111,7 +111,7 @@ export default async function Home() {
 
       <main>
         <section className="hero">
-          <img className="hero-image" src={images.hero} alt="Gaon Veda traditional ingredients arranged on a rustic table." />
+          <img className="hero-image" src={images.hero} alt="GAONVEDA traditional ingredients arranged on a rustic table." />
           <div className="hero-overlay" />
           <div className="hero-content">
             <p className="eyebrow">Heritage Minimalism</p>
@@ -142,7 +142,7 @@ export default async function Home() {
         <section className="promise paper reveal">
           <div className="container">
             <div className="section-heading centered">
-              <h2>The Gaon Veda Promise</h2>
+              <h2>The GAONVEDA Promise</h2>
               <i />
             </div>
             <div className="feature-grid">
@@ -237,7 +237,7 @@ export default async function Home() {
                 the Earth's Rhythm
               </h2>
               <p>
-                Gaon Veda was born from a profound nostalgia for the unadulterated flavors of our childhood. In a world of
+                GAONVEDA was born from a profound nostalgia for the unadulterated flavors of our childhood. In a world of
                 mass-produced convenience, we sought to return to the source-the quiet villages where food is still grown with
                 reverence and prepared with patience.
               </p>
@@ -324,8 +324,8 @@ export default async function Home() {
         <div className="container footer-grid">
           <div>
             <a className="brand footer-brand" href="#">
-              <img src={images.logo} alt="Gaon Veda Logo" />
-              <span>Gaon Veda</span>
+              <img src={images.logo} alt="GAONVEDA Logo" />
+              <span>GAONVEDA</span>
             </a>
             <p>Preserving Heritage, One Harvest at a Time. Bringing the tactile richness of traditional Indian food production to the modern table.</p>
             <div className="socials">
@@ -341,7 +341,7 @@ export default async function Home() {
           <FooterLinks title="About" links={["Our Heritage", "Sustainability", "The Process"]} />
           <FooterLinks title="Support" links={["Shipping Policy", "Refund Policy", "Contact Us"]} />
           <div className="footer-bottom">
-            <p>© 2025 Gaon Veda. Preserving Heritage, One Harvest at a Time.</p>
+            <p>© 2025 GAONVEDA. Preserving Heritage, One Harvest at a Time.</p>
             <div>
               <a href="#">Privacy Policy</a>
               <a href="#">Terms of Service</a>

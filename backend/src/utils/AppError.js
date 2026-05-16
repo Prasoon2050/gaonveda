@@ -1,5 +1,5 @@
 /**
- * Custom operational error class for the Gaon Veda API.
+ * Custom operational error class for the GAONVEDA API.
  * Distinguishes expected business-logic errors (e.g. 404, 400)
  * from unexpected programming errors.
  */

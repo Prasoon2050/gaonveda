@@ -87,7 +87,7 @@ export default async function ProductsPage() {
 
         <section className="catalog-promise">
           <div>
-            <h2>The Gaon Veda Promise</h2>
+            <h2>The GAONVEDA Promise</h2>
             <div className="catalog-promise-grid">
               {promiseItems.map(([icon, title, text]) => (
                 <article key={title}>
@@ -111,7 +111,7 @@ function CatalogNav({ loggedIn }: { loggedIn: boolean }) {
       <div className="catalog-nav-inner">
         <Link className="catalog-brand" href="/">
           <img src="/logo.png" alt="" />
-          Gaon Veda
+          GAONVEDA
         </Link>
         <div className="catalog-links">
           <Link className="active" href="/products">
@@ -154,7 +154,7 @@ function CatalogFooter() {
     <footer className="catalog-footer">
       <div className="catalog-footer-inner">
         <div>
-          <h2>Gaon Veda</h2>
+          <h2>GAONVEDA</h2>
           <p>Preserving Heritage, One Harvest at a Time.</p>
         </div>
         <nav>
@@ -165,7 +165,7 @@ function CatalogFooter() {
           <Link href="/wishlist">Contact Us</Link>
         </nav>
       </div>
-      <p>© 2024 Gaon Veda. Preserving Heritage, One Harvest at a Time.</p>
+      <p>© 2024 GAONVEDA. Preserving Heritage, One Harvest at a Time.</p>
     </footer>
   );
 }

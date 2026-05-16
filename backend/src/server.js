@@ -57,5 +57,5 @@ app.use(errorHandler);
 await connectDB();
 
 app.listen(port, () => {
-  console.log(`Gaon Veda API running on http://localhost:${port}`);
+  console.log(`GAONVEDA API running on http://localhost:${port}`);
 });

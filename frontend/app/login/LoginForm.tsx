@@ -60,8 +60,8 @@ export default function LoginPage() {
 
   return (
     <main className="auth-page">
-      <section className="auth-visual" aria-label="Gaon Veda heritage">
-        <img src="/hero.png" alt="Gaon Veda traditional pantry ingredients" />
+      <section className="auth-visual" aria-label="GAONVEDA heritage">
+        <img src="/hero.png" alt="GAONVEDA traditional pantry ingredients" />
         <div>
           <h1>
             Preserving Heritage,
@@ -76,7 +76,7 @@ export default function LoginPage() {
         <div className="auth-card glass-panel" style={{ borderRadius: "16px", padding: "2.5rem" }}>
           <Link className="auth-brand" href="/">
             <img src="/logo.png" alt="" />
-            Gaon Veda
+            GAONVEDA
           </Link>
 
           {/* Tab Switcher */}
@@ -107,7 +107,7 @@ export default function LoginPage() {
               <form className="auth-form" onSubmit={handleSubmit}>
                 <label>
                   <span>Email</span>
-                  <input name="email" placeholder="prasoon@example.com" type="email" required className="premium-input" />
+                  <input name="email" placeholder="xyz@example.com" type="email" required className="premium-input" />
                 </label>
                 <label>
                   <span>
@@ -139,7 +139,7 @@ export default function LoginPage() {
           ) : (
             <>
               <div className="auth-heading">
-                <h2>Join Gaon Veda</h2>
+                <h2>Join GAONVEDA</h2>
                 <span>Create an account to save favorites and track orders.</span>
               </div>
 
@@ -154,7 +154,7 @@ export default function LoginPage() {
                 </label>
                 <label>
                   <span>Phone Number</span>
-                  <input name="phone" placeholder="+91 98765 43210" type="tel" className="premium-input" />
+                  <input name="phone" placeholder="+91 91xxx xxxxx" type="tel" className="premium-input" />
                 </label>
                 <label>
                   <span>Password</span>

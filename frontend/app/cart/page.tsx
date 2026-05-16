@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getCart } from "../../lib/api";
 import { productImage } from "../../lib/images";
 import { isLoggedIn } from "../../lib/session";
@@ -11,8 +12,11 @@ function Icon({ name }: { name: string }) {
 }
 
 export default async function CartPage() {
-  const cart = await getCart();
   const loggedIn = await isLoggedIn();
+  if (!loggedIn) {
+    redirect("/login");
+  }
+  const cart = await getCart();
 
   return (
     <div className="commerce-page">
@@ -88,7 +92,7 @@ function CommerceNav({ cartCount, loggedIn }: { cartCount?: string; loggedIn: bo
       <div className="commerce-nav-inner">
         <Link className="commerce-brand" href="/">
           <img src="/logo.png" alt="" />
-          Gaon Veda
+          GAONVEDA
         </Link>
         <nav>
           <Link href="/#shop">Shop</Link>
@@ -130,10 +134,10 @@ function CommerceFooter({ variant }: { variant: "cart" | "wishlist" }) {
     <footer className={`commerce-footer commerce-footer-${variant}`}>
       <div className="commerce-footer-inner">
         <div className="commerce-footer-brand">
-          <span>Gaon Veda</span>
+          <span>GAONVEDA</span>
           <p>
             {variant === "cart"
-              ? "© 2024 Gaon Veda. Preserving Heritage, One Harvest at a Time."
+              ? "© 2024 GAONVEDA. Preserving Heritage, One Harvest at a Time."
               : "Preserving Heritage, One Harvest at a Time."}
           </p>
         </div>
@@ -145,7 +149,7 @@ function CommerceFooter({ variant }: { variant: "cart" | "wishlist" }) {
           <Link href="/wishlist">Contact Us</Link>
         </nav>
         {variant === "wishlist" ? (
-          <p className="commerce-footer-copy">© 2024 Gaon Veda. Preserving Heritage, One Harvest at a Time.</p>
+          <p className="commerce-footer-copy">© 2024 GAONVEDA. Preserving Heritage, One Harvest at a Time.</p>
         ) : null}
       </div>
     </footer>

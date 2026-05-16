@@ -160,7 +160,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                       <span>{review.user?.avatarInitials || review.user?.name?.slice(0, 2) || "GV"}</span>
                       <div>
                         <h3>{review.title}</h3>
-                        <p>{review.user?.name || "Gaon Veda Customer"}</p>
+                        <p>{review.user?.name || "GAONVEDA Customer"}</p>
                       </div>
                     </div>
                     <div className="review-stars">
@@ -193,7 +193,7 @@ function PdpNav({ cartCount, loggedIn }: { cartCount: number; loggedIn: boolean 
       <nav>
         <Link className="pdp-brand" href="/">
           <img src="/logo.png" alt="" />
-          Gaon Veda
+          GAONVEDA
         </Link>
         <ul>
           <li>
@@ -242,8 +242,8 @@ function PdpFooter() {
     <footer className="pdp-footer">
       <div>
         <div>
-          <Link href="/">Gaon Veda</Link>
-          <p>© 2024 Gaon Veda. Preserving Heritage, One Harvest at a Time.</p>
+          <Link href="/">GAONVEDA</Link>
+          <p>© 2024 GAONVEDA. Preserving Heritage, One Harvest at a Time.</p>
         </div>
         <nav>
           <h2>Explore</h2>
