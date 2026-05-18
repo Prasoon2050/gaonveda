@@ -1,5 +1,7 @@
 import { AddToCartButton } from "../components/AddToCartButton";
-import { formatPrice, getProducts, ratingIcons } from "../lib/api";
+import { Footer } from "../components/Footer";
+import { Navbar } from "../components/Navbar";
+import { formatPrice, getProducts, ratingIcons, getCart } from "../lib/api";
 import { productHref, productImage } from "../lib/images";
 import { isLoggedIn } from "../lib/session";
 
@@ -67,49 +69,13 @@ function Icon({ name, fill = false }: { name: string; fill?: boolean }) {
 export default async function Home() {
   const products = (await getProducts()).slice(0, 3);
   const loggedIn = await isLoggedIn();
+  const cart = await getCart();
 
   return (
     <>
-      <nav className="top-nav">
-        <div className="nav-inner">
-          <a className="brand" href="#">
-            <img src={images.logo} alt="GAONVEDA Logo" />
-            <span>GAONVEDA</span>
-          </a>
-          <div className="nav-links">
-            <a href="#shop">Shop</a>
-            <a href="#story">Our Story</a>
-            <a href="#process">Process</a>
-            <a href="#coming-soon">Coming Soon</a>
-          </div>
-          <div className="nav-actions">
-            <button aria-label="Search">
-              <Icon name="search" />
-            </button>
-            <a aria-label="Wishlist" href="/wishlist">
-              <Icon name="favorite" />
-            </a>
-            {loggedIn ? (
-              <a aria-label="Profile" href="/profile">
-                <Icon name="person" />
-              </a>
-            ) : (
-              <a className="login-pill" href="/login">
-                Login
-              </a>
-            )}
-            <a className="cart-button" aria-label="Cart" href="/cart">
-              <Icon name="shopping_cart" />
-              <span className="cart-count">2</span>
-            </a>
-            <button className="mobile-menu" aria-label="Menu">
-              <Icon name="menu" />
-            </button>
-          </div>
-        </div>
-      </nav>
+      <Navbar loggedIn={loggedIn} cartCount={cart.totals.itemCount} />
 
-      <main>
+      <main className="home-main">
         <section className="hero">
           <img className="hero-image" src={images.hero} alt="GAONVEDA traditional ingredients arranged on a rustic table." />
           <div className="hero-overlay" />
@@ -138,8 +104,10 @@ export default async function Home() {
 
         <div className="section-ornament" aria-hidden="true" />
 
-
-        <section className="promise paper reveal">
+        <section className="promise paper reveal" style={{ position: "relative", overflow: "hidden" }}>
+          <div className="promise-ornament promise-ornament-left" aria-hidden="true">
+            <img src="/leaf-ornament.svg" alt="" className="" />
+          </div>
           <div className="container">
             <div className="section-heading centered">
               <h2>The GAONVEDA Promise</h2>
@@ -174,7 +142,10 @@ export default async function Home() {
 
         <div className="section-ornament" aria-hidden="true" />
 
-        <section className="products" id="shop">
+        <section className="products" id="shop" style={{ position: "relative" }}>
+          <div className="promise-ornament promise-ornament-right" aria-hidden="true">
+            <img src="/leaf-ornament.svg" alt="" className="" />
+          </div>
           <div className="container">
             <div className="section-heading split reveal">
               <div>
@@ -260,7 +231,13 @@ export default async function Home() {
 
         <div className="section-ornament" aria-hidden="true" />
 
-        <section className="process reveal" id="process">
+        <section className="process reveal" id="process" style={{ position: "relative" }}>
+          <div className="promise-ornament promise-ornament-right" aria-hidden="true">
+            <img src="/leaf-ornament.svg" alt="" className="" />
+          </div>
+          <div className="promise-ornament promise-ornament-left" aria-hidden="true">
+            <img src="/leaf-ornament.svg" alt="" className="" />
+          </div>
           <div className="container">
             <div className="section-heading centered">
               <h2>Journey of Purity</h2>
@@ -320,48 +297,7 @@ export default async function Home() {
         </section>
       </main>
 
-      <footer>
-        <div className="container footer-grid">
-          <div>
-            <a className="brand footer-brand" href="#">
-              <img src={images.logo} alt="GAONVEDA Logo" />
-              <span>GAONVEDA</span>
-            </a>
-            <p>Preserving Heritage, One Harvest at a Time. Bringing the tactile richness of traditional Indian food production to the modern table.</p>
-            <div className="socials">
-              <a href="#" aria-label="Sustainability">
-                <Icon name="nest_eco_leaf" />
-              </a>
-              <a href="#" aria-label="Instagram">
-                <Icon name="photo_camera" />
-              </a>
-            </div>
-          </div>
-          <FooterLinks title="Shop" links={["Shop All", "Cold Pressed Oils", "Stone Ground Flours", "Traditional Pickles"]} />
-          <FooterLinks title="About" links={["Our Heritage", "Sustainability", "The Process"]} />
-          <FooterLinks title="Support" links={["Shipping Policy", "Refund Policy", "Contact Us"]} />
-          <div className="footer-bottom">
-            <p>© 2025 GAONVEDA. Preserving Heritage, One Harvest at a Time.</p>
-            <div>
-              <a href="#">Privacy Policy</a>
-              <a href="#">Terms of Service</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
-  );
-}
-
-function FooterLinks({ title, links }: { title: string; links: string[] }) {
-  return (
-    <div className="footer-links">
-      <h4>{title}</h4>
-      {links.map((link) => (
-        <a href="#" key={link}>
-          {link}
-        </a>
-      ))}
-    </div>
   );
 }

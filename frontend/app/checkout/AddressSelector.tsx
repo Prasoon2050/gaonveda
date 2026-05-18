@@ -72,22 +72,13 @@ export default function AddressSelector({ addresses }: Props) {
   }
 
   return (
-    <div style={{ marginTop: "1rem" }}>
+    <div className="checkout-addresses-selector">
       {addresses.length > 0 && !isAdding && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div className="checkout-addresses-list">
           {addresses.map((addr, i) => (
             <label
               key={i}
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: "1rem",
-                padding: "1rem",
-                border: addr.isDefault ? "2px solid var(--color-primary)" : "1px solid #ccc",
-                borderRadius: "8px",
-                cursor: "pointer",
-                background: addr.isDefault ? "#f9fdfa" : "white",
-              }}
+              className={`address-option-card ${addr.isDefault ? "selected" : ""}`}
             >
               <input
                 type="radio"
@@ -95,9 +86,9 @@ export default function AddressSelector({ addresses }: Props) {
                 checked={addr.isDefault || false}
                 onChange={() => handleSelect(i)}
                 disabled={pending}
-                style={{ marginTop: "0.25rem" }}
+                className="address-radio"
               />
-              <address style={{ fontStyle: "normal", lineHeight: 1.5, margin: 0 }}>
+              <address className="address-details-block">
                 <strong>{addr.recipient}</strong><br />
                 {addr.line1}<br />
                 {addr.line2 ? <>{addr.line2}<br /></> : null}
@@ -109,7 +100,7 @@ export default function AddressSelector({ addresses }: Props) {
           <button 
             type="button" 
             onClick={() => setIsAdding(true)}
-            style={{ padding: "0.5rem", background: "transparent", border: "1px dashed var(--color-primary)", color: "var(--color-primary)", borderRadius: "8px", cursor: "pointer" }}
+            className="add-address-dash-btn"
           >
             + Add New Address
           </button>
@@ -117,20 +108,20 @@ export default function AddressSelector({ addresses }: Props) {
       )}
 
       {isAdding && (
-        <form onSubmit={handleAdd} className="glass-panel" style={{ display: "flex", flexDirection: "column", gap: "0.75rem", padding: "1.5rem", borderRadius: "12px", marginTop: "1rem" }}>
-          <h3 style={{ margin: "0 0 0.5rem 0", color: "var(--primary)", fontFamily: "var(--font-display)" }}>Add New Address</h3>
+        <form onSubmit={handleAdd} className="add-address-form-panel">
+          <h3 className="add-address-title">Add New Address</h3>
           <input name="recipient" placeholder="Recipient Name" required className="premium-input" />
           <input name="phone" placeholder="Phone Number" required className="premium-input" />
           <input name="line1" placeholder="Address Line 1" required className="premium-input" />
           <input name="line2" placeholder="Address Line 2 (Optional)" className="premium-input" />
-          <div style={{ display: "flex", gap: "0.75rem" }}>
+          <div className="form-grid-row">
             <input name="city" placeholder="City" required className="premium-input" />
             <input name="state" placeholder="State" required className="premium-input" />
           </div>
           <input name="postalCode" placeholder="Postal Code" required className="premium-input" />
           
-          <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem" }}>
-            <button type="submit" disabled={pending} className="premium-button" style={{ flex: 1 }}>
+          <div className="form-actions-row">
+            <button type="submit" disabled={pending} className="premium-button">
               {pending ? "Saving..." : "Save & Use Address"}
             </button>
             {addresses.length > 0 && (

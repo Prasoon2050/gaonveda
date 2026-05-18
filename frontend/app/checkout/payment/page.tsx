@@ -2,7 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getProfile, getCart, getProduct, formatPrice } from "../../../lib/api";
 import { isLoggedIn } from "../../../lib/session";
+import { productImage } from "../../../lib/images";
 import PaymentClient from "./PaymentClient";
+import { Navbar } from "../../../components/Navbar";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,7 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
 
   const { buyNow, productSlug, quantity, selectedSize } = await searchParams;
   const profile = await getProfile();
+  const cart = await getCart();
   const defaultAddress = profile.user.addresses?.find((address) => address.isDefault) || profile.user.addresses?.[0];
 
   if (!defaultAddress) {
@@ -63,7 +66,6 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
     qs.set("quantity", String(qty));
     if (selectedSize) qs.set("selectedSize", selectedSize);
   } else {
-    const cart = await getCart();
     if (!cart.items || cart.items.length === 0) {
       redirect("/cart");
     }
@@ -73,43 +75,31 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
   }
 
   return (
-    <div className="cart-page">
-      <header className="commerce-nav">
-        <div className="commerce-nav-inner">
-          <Link className="commerce-brand" href="/">
-            <img src="/logo.png" alt="" />
-            GAONVEDA
-          </Link>
-          <nav>
-            <Link href="/products">Shop</Link>
-            <Link href="/#story">Our Story</Link>
-          </nav>
-          <div className="commerce-actions">
-            <Link className="commerce-cart-link" href="/profile" aria-label="Profile">
-              <Icon name="person" />
-            </Link>
-            <Link className="commerce-cart-link" href="/cart" aria-label="Shopping Cart">
-              <Icon name="shopping_cart" />
-              {profile.stats.cartItems ? <span className="commerce-cart-count">{profile.stats.cartItems}</span> : null}
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="commerce-page payment-page">
+      <div className="promise-ornament promise-ornament-left" aria-hidden="true">
+        <img src="/leaf-ornament.svg" alt="" className="" />
+      </div>
+      <div className="promise-ornament promise-ornament-right" aria-hidden="true">
+        <img src="/leaf-ornament.svg" alt="" className="" />
+      </div>
+      <Navbar loggedIn={true} cartCount={cart.totals.itemCount} />
 
-      <main className="cart-main">
-        <div className="cart-heading">
+      <main className="commerce-main cart-main">
+        <header className="commerce-title">
           <h1>Checkout — Step 2: Payment</h1>
           <p>Select your payment method and complete the order.</p>
-        </div>
+        </header>
 
         <div className="cart-grid">
-          <section className="cart-items glass-panel" aria-label="Order Items" style={{ padding: "2rem", borderRadius: "12px" }}>
-            <div style={{ marginBottom: "2rem", borderBottom: "1px solid var(--color-border)", paddingBottom: "1rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h2>Shipping To</h2>
-                <Link href={`/checkout?${qs.toString()}`} style={{ color: "var(--color-primary)", textDecoration: "underline" }}>Change</Link>
+          <section className="cart-list" aria-label="Order Items">
+            <div className="payment-shipping-card">
+              <div className="payment-shipping-header">
+                <h2>Shipping Destination</h2>
+                <Link href={`/checkout?${qs.toString()}`} className="payment-change-link">
+                  Change
+                </Link>
               </div>
-              <address style={{ fontStyle: "normal", lineHeight: 1.5, marginTop: "0.5rem" }}>
+              <address className="payment-address-details">
                 <strong>{defaultAddress.recipient}</strong><br />
                 {defaultAddress.line1}<br />
                 {defaultAddress.line2 ? <>{defaultAddress.line2}<br /></> : null}
@@ -118,36 +108,36 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
               </address>
             </div>
 
-            <h2>Order Summary</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1rem" }}>
-              {items.map((item) => (
-                <article key={`${item.productSlug}-${item.selectedSize}`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                    <img src={`/products/${item.productSlug}.jpg`} alt={item.product?.title || item.title} style={{ width: "64px", height: "64px", objectFit: "cover", borderRadius: "8px" }} />
-                    <div>
-                      <h4 style={{ margin: 0 }}>{item.product?.title || item.title}</h4>
-                      <p style={{ margin: 0, color: "var(--color-text-light)", fontSize: "0.875rem" }}>{item.selectedSize} × {item.quantity}</p>
-                    </div>
-                  </div>
-                  <strong>{item.lineTotalLabel}</strong>
-                </article>
-              ))}
+            <div className="checkout-summary-container" style={{ marginTop: 0, paddingTop: 0, border: "none" }}>
+              <h2 style={{ fontSize: "22px", margin: "0 0 16px" }}>Order Items</h2>
             </div>
-            
-            <dl style={{ marginTop: "2rem", borderTop: "1px solid var(--color-border)", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <dt>Subtotal</dt>
-                <dd>{totals.subtotalLabel}</dd>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <dt>Shipping</dt>
-                <dd>{totals.shippingLabel}</dd>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.25rem", fontWeight: "bold", marginTop: "0.5rem" }}>
-                <dt>Total</dt>
-                <dd>{totals.totalLabel}</dd>
-              </div>
-            </dl>
+
+            {items.map((item) => (
+              <article key={`${item.productSlug}-${item.selectedSize}`} className="cart-item card-hover">
+                <div className="cart-item-image">
+                  <img src={productImage(item.productSlug)} alt={item.product?.title || item.title} />
+                </div>
+                <div className="cart-item-body">
+                  <div>
+                    {item.product?.badge && <span className="cart-badge">{item.product.badge}</span>}
+                    <h2>
+                      <Link href={`/products/${item.productSlug}`} style={{ textDecoration: "none", color: "inherit" }}>
+                        {item.product?.title || item.title}
+                      </Link>
+                    </h2>
+                    <p className="cart-item-size" style={{ fontSize: "14px", fontWeight: "600", color: "var(--heritage-gold)", margin: "4px 0 0" }}>
+                      Pack Size: {item.selectedSize}
+                    </p>
+                  </div>
+                  <div className="cart-item-bottom">
+                    <span style={{ fontSize: "14px", color: "var(--on-surface-variant)" }}>
+                      Qty: <strong>{item.quantity}</strong> × {item.unitPriceLabel}
+                    </span>
+                    <strong>{item.lineTotalLabel}</strong>
+                  </div>
+                </div>
+              </article>
+            ))}
           </section>
 
           <aside className="cart-summary glass-panel" aria-label="Payment Options">
@@ -157,6 +147,24 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
               isBuyNow={buyNow === "true"} 
               orderData={orderData} 
             />
+
+            <div className="checkout-summary-container">
+              <h2>Order Summary</h2>
+              <dl className="checkout-summary-lines">
+                <div>
+                  <dt>Subtotal</dt>
+                  <dd>{totals.subtotalLabel}</dd>
+                </div>
+                <div>
+                  <dt>Shipping</dt>
+                  <dd>{totals.shippingLabel}</dd>
+                </div>
+                <div className="checkout-total-row">
+                  <dt>Total</dt>
+                  <dd>{totals.totalLabel}</dd>
+                </div>
+              </dl>
+            </div>
 
             <p className="secure-checkout">
               <Icon name="lock" /> Secure Checkout

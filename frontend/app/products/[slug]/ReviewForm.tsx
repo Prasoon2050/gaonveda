@@ -7,7 +7,7 @@ import { createReview } from "../../../lib/client-api";
 
 export function ReviewForm({ productSlug }: { productSlug: string }) {
   const router = useRouter();
-  const [rating, setRating] = useState("5");
+  const [rating, setRating] = useState(0);
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
   const [pending, setPending] = useState(false);
@@ -15,13 +15,18 @@ export function ReviewForm({ productSlug }: { productSlug: string }) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (rating === 0) {
+      setMessage("Please select a rating before submitting.");
+      return;
+    }
     setPending(true);
     setMessage("");
 
     try {
-      await createReview(productSlug, { rating: Number(rating), title, comment });
+      await createReview(productSlug, { rating, title, comment });
       setTitle("");
       setComment("");
+      setRating(0);
       setMessage("Review published. Thank you for sharing your experience.");
       router.refresh();
     } finally {
@@ -31,15 +36,23 @@ export function ReviewForm({ productSlug }: { productSlug: string }) {
 
   return (
     <form className="review-form" onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor="review-rating">Rating</label>
-        <select id="review-rating" value={rating} onChange={(event) => setRating(event.target.value)}>
-          <option value="5">5 stars</option>
-          <option value="4">4 stars</option>
-          <option value="3">3 stars</option>
-          <option value="2">2 stars</option>
-          <option value="1">1 star</option>
-        </select>
+      <div className="review-rating-group">
+        <label>Rating</label>
+        <div className="review-star-selector">
+          {[1, 2, 3, 4, 5].map((starValue) => (
+            <button
+              type="button"
+              key={starValue}
+              onClick={() => setRating(starValue)}
+              className={starValue <= rating ? "active" : ""}
+              aria-label={`Rate ${starValue} star${starValue > 1 ? "s" : ""}`}
+            >
+              <span className="material-symbols-outlined">
+                {starValue <= rating ? "star" : "star_outline"}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
       <div>
         <label htmlFor="review-title">Review title</label>

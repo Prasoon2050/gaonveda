@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Footer } from "../../components/Footer";
+import { Navbar } from "../../components/Navbar";
 import { AddToCartButton } from "../../components/AddToCartButton";
-import { formatPrice, getProducts } from "../../lib/api";
+import { formatPrice, getProducts, getCart } from "../../lib/api";
 import { productHref, productImage } from "../../lib/images";
 import { isLoggedIn } from "../../lib/session";
 
@@ -25,10 +27,17 @@ function Icon({ name, fill = false }: { name: string; fill?: boolean }) {
 export default async function ProductsPage() {
   const products = await getProducts();
   const loggedIn = await isLoggedIn();
+  const cart = await getCart();
 
   return (
     <div className="catalog-page">
-      <CatalogNav loggedIn={loggedIn} />
+      <div className="promise-ornament promise-ornament-left" aria-hidden="true">
+        <img src="/leaf-ornament.svg" alt="" className="" />
+      </div>
+      <div className="promise-ornament promise-ornament-right" aria-hidden="true">
+        <img src="/leaf-ornament.svg" alt="" className="" />
+      </div>
+      <Navbar loggedIn={loggedIn} cartCount={cart.totals.itemCount} />
       <main className="catalog-main">
         <header className="catalog-hero">
           <h1>Our Earthly Treasures</h1>
@@ -100,72 +109,7 @@ export default async function ProductsPage() {
           </div>
         </section>
       </main>
-      <CatalogFooter />
+      <Footer />
     </div>
-  );
-}
-
-function CatalogNav({ loggedIn }: { loggedIn: boolean }) {
-  return (
-    <nav className="catalog-nav">
-      <div className="catalog-nav-inner">
-        <Link className="catalog-brand" href="/">
-          <img src="/logo.png" alt="" />
-          GAONVEDA
-        </Link>
-        <div className="catalog-links">
-          <Link className="active" href="/products">
-            Shop
-          </Link>
-          <Link href="/#story">Our Story</Link>
-          <Link href="/#process">Process</Link>
-          <Link href="/#coming-soon">Coming Soon</Link>
-        </div>
-        <div className="catalog-actions">
-          <button aria-label="search">
-            <Icon name="search" />
-          </button>
-          <Link href="/wishlist" aria-label="wishlist">
-            <Icon name="favorite" />
-          </Link>
-          {loggedIn ? (
-            <Link href="/profile" aria-label="profile">
-              <Icon name="person" />
-            </Link>
-          ) : (
-            <Link className="login-pill" href="/login">
-              Login
-            </Link>
-          )}
-          <Link href="/cart" aria-label="shopping_cart">
-            <Icon name="shopping_cart" />
-          </Link>
-          <button className="catalog-menu" aria-label="menu">
-            <Icon name="menu" />
-          </button>
-        </div>
-      </div>
-    </nav>
-  );
-}
-
-function CatalogFooter() {
-  return (
-    <footer className="catalog-footer">
-      <div className="catalog-footer-inner">
-        <div>
-          <h2>GAONVEDA</h2>
-          <p>Preserving Heritage, One Harvest at a Time.</p>
-        </div>
-        <nav>
-          <Link href="/products">Shop All</Link>
-          <Link href="/#story">Our Heritage</Link>
-          <Link href="/#coming-soon">Sustainability</Link>
-          <Link href="/cart">Shipping Policy</Link>
-          <Link href="/wishlist">Contact Us</Link>
-        </nav>
-      </div>
-      <p>© 2024 GAONVEDA. Preserving Heritage, One Harvest at a Time.</p>
-    </footer>
   );
 }

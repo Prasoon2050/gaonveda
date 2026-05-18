@@ -69,7 +69,7 @@ export function CheckoutButton() {
   }
 
   return (
-    <button className="premium-button" type="button" disabled={pending} onClick={handleClick} style={{ width: "100%" }}>
+    <button className="premium-button checkout-button" type="button" disabled={pending} onClick={handleClick}>
       {pending ? "Loading..." : "Proceed to Checkout"} <Icon name="arrow_forward" />
     </button>
   );

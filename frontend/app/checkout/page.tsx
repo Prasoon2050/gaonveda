@@ -2,7 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getProfile, getCart, getProduct, formatPrice } from "../../lib/api";
 import { isLoggedIn } from "../../lib/session";
+import { productImage } from "../../lib/images";
 import AddressSelector from "./AddressSelector";
+import { Navbar } from "../../components/Navbar";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
 
   const { buyNow, productSlug, quantity, selectedSize } = await searchParams;
   const profile = await getProfile();
+  const cart = await getCart();
   const defaultAddress = profile.user.addresses?.find((address) => address.isDefault) || profile.user.addresses?.[0];
 
   let items: any[] = [];
@@ -56,7 +59,6 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
     qs.set("quantity", String(qty));
     if (selectedSize) qs.set("selectedSize", selectedSize);
   } else {
-    const cart = await getCart();
     if (!cart.items || cart.items.length === 0) {
       redirect("/cart");
     }
@@ -65,50 +67,46 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
   }
 
   return (
-    <div className="cart-page">
-      <header className="commerce-nav">
-        <div className="commerce-nav-inner">
-          <Link className="commerce-brand" href="/">
-            <img src="/logo.png" alt="" />
-            GAONVEDA
-          </Link>
-          <nav>
-            <Link href="/products">Shop</Link>
-            <Link href="/#story">Our Story</Link>
-          </nav>
-          <div className="commerce-actions">
-            <Link className="commerce-cart-link" href="/profile" aria-label="Profile">
-              <Icon name="person" />
-            </Link>
-            <Link className="commerce-cart-link" href="/cart" aria-label="Shopping Cart">
-              <Icon name="shopping_cart" />
-              {profile.stats.cartItems ? <span className="commerce-cart-count">{profile.stats.cartItems}</span> : null}
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="commerce-page checkout-page">
+      <div className="promise-ornament promise-ornament-left" aria-hidden="true">
+        <img src="/leaf-ornament.svg" alt="" className="" />
+      </div>
+      <div className="promise-ornament promise-ornament-right" aria-hidden="true">
+        <img src="/leaf-ornament.svg" alt="" className="" />
+      </div>
+      <Navbar loggedIn={true} cartCount={cart.totals.itemCount} />
 
-      <main className="cart-main">
-        <div className="cart-heading">
+      <main className="commerce-main cart-main">
+        <header className="commerce-title">
           <h1>Checkout — Step 1: Address</h1>
           <p>Review your items and select a shipping address.</p>
-        </div>
+        </header>
 
         <div className="cart-grid">
-          <section className="cart-items" aria-label="Order Items">
+          <section className="cart-list" aria-label="Order Items">
             {items.map((item) => (
               <article key={`${item.productSlug}-${item.selectedSize}`} className="cart-item card-hover">
-                <img src={`/products/${item.productSlug}.jpg`} alt={item.product?.title || item.title} />
-                <div className="cart-item-details">
-                  <div className="cart-item-header">
-                    <h3>
-                      <Link href={`/products/${item.productSlug}`}>{item.product?.title || item.title}</Link>
-                    </h3>
+                <div className="cart-item-image">
+                  <img src={productImage(item.productSlug)} alt={item.product?.title || item.title} />
+                </div>
+                <div className="cart-item-body">
+                  <div>
+                    {item.product?.badge && <span className="cart-badge">{item.product.badge}</span>}
+                    <h2>
+                      <Link href={`/products/${item.productSlug}`} style={{ textDecoration: "none", color: "inherit" }}>
+                        {item.product?.title || item.title}
+                      </Link>
+                    </h2>
+                    <p className="cart-item-size" style={{ fontSize: "14px", fontWeight: "600", color: "var(--heritage-gold)", margin: "4px 0 0" }}>
+                      Pack Size: {item.selectedSize}
+                    </p>
                   </div>
-                  <p className="cart-item-size">{item.selectedSize}</p>
-                  <p className="cart-item-price">
-                    {item.unitPriceLabel} × {item.quantity} = <strong>{item.lineTotalLabel}</strong>
-                  </p>
+                  <div className="cart-item-bottom">
+                    <span style={{ fontSize: "14px", color: "var(--on-surface-variant)" }}>
+                      Qty: <strong>{item.quantity}</strong> × {item.unitPriceLabel}
+                    </span>
+                    <strong>{item.lineTotalLabel}</strong>
+                  </div>
                 </div>
               </article>
             ))}
@@ -118,9 +116,9 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
             <h2>Shipping Address</h2>
             <AddressSelector addresses={profile.user.addresses || []} />
 
-            <div style={{ marginTop: "2rem", borderTop: "1px solid var(--color-border)", paddingTop: "1rem" }}>
+            <div className="checkout-summary-container">
               <h2>Order Summary</h2>
-              <dl>
+              <dl className="checkout-summary-lines">
                 <div>
                   <dt>Subtotal</dt>
                   <dd>{totals.subtotalLabel}</dd>
@@ -129,14 +127,14 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
                   <dt>Shipping</dt>
                   <dd>{totals.shippingLabel}</dd>
                 </div>
-                <div className="cart-total">
+                <div className="checkout-total-row">
                   <dt>Total</dt>
                   <dd>{totals.totalLabel}</dd>
                 </div>
               </dl>
             </div>
 
-            <div style={{ marginTop: "1rem" }}>
+            <div style={{ marginTop: "20px" }}>
               {defaultAddress ? (
                 <Link 
                   href={`/checkout/payment?${qs.toString()}`} 

@@ -4,6 +4,9 @@ import { productImage } from "../../../lib/images";
 import { isLoggedIn } from "../../../lib/session";
 import { ProductActions } from "./ProductActions";
 import { ReviewForm } from "./ReviewForm";
+import { Gallery } from "./Gallery";
+import { Footer } from "../../../components/Footer";
+import { Navbar } from "../../../components/Navbar";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +41,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <div className="pdp-page">
-      <PdpNav cartCount={cart.totals.itemCount} loggedIn={loggedIn} />
+      <div className="promise-ornament promise-ornament-left" aria-hidden="true">
+        <img src="/leaf-ornament.svg" alt="" className="" />
+      </div>
+      <div className="promise-ornament promise-ornament-right" aria-hidden="true">
+        <img src="/leaf-ornament.svg" alt="" className="" />
+      </div>
+      <Navbar loggedIn={loggedIn} cartCount={cart.totals.itemCount} />
       <main className="pdp-main">
         <nav className="pdp-breadcrumbs" aria-label="Breadcrumb">
           <Link href="/products">Shop</Link>
@@ -49,18 +58,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </nav>
 
         <section className="pdp-hero">
-          <div className="pdp-gallery">
-            <div className="pdp-main-image">
-              <img src={mainImage} alt={`${product.title} product`} />
-            </div>
-            <div className="pdp-thumbnails">
-              {thumbnails.map((thumbnail, index) => (
-                <button className={index === 0 ? "active" : ""} key={thumbnail} aria-label={`View product image ${index + 1}`}>
-                  <img src={thumbnail} alt="" />
-                </button>
-              ))}
-            </div>
-          </div>
+          <Gallery mainImage={mainImage} thumbnails={thumbnails} productTitle={product.title} />
 
           <div className="pdp-details">
             <h1>{product.title}</h1>
@@ -182,81 +180,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </section>
       </main>
-      <PdpFooter />
+      <Footer />
     </div>
-  );
-}
-
-function PdpNav({ cartCount, loggedIn }: { cartCount: number; loggedIn: boolean }) {
-  return (
-    <header className="pdp-nav">
-      <nav>
-        <Link className="pdp-brand" href="/">
-          <img src="/logo.png" alt="" />
-          GAONVEDA
-        </Link>
-        <ul>
-          <li>
-            <Link className="active" href="/products">
-              Shop
-            </Link>
-          </li>
-          <li>
-            <Link href="/#story">Our Story</Link>
-          </li>
-          <li>
-            <Link href="/#process">Process</Link>
-          </li>
-          <li>
-            <Link href="/#coming-soon">Coming Soon</Link>
-          </li>
-        </ul>
-        <div>
-          <button aria-label="Search">
-            <Icon name="search" />
-          </button>
-          <Link href="/wishlist" aria-label="Wishlist">
-            <Icon name="favorite" />
-          </Link>
-          {loggedIn ? (
-            <Link href="/profile" aria-label="Profile">
-              <Icon name="person" />
-            </Link>
-          ) : (
-            <Link className="login-pill" href="/login">
-              Login
-            </Link>
-          )}
-          <Link href="/cart" aria-label="Cart">
-            <Icon name="shopping_cart" />
-            {cartCount ? <span className="pdp-cart-count">{cartCount}</span> : null}
-          </Link>
-        </div>
-      </nav>
-    </header>
-  );
-}
-
-function PdpFooter() {
-  return (
-    <footer className="pdp-footer">
-      <div>
-        <div>
-          <Link href="/">GAONVEDA</Link>
-          <p>© 2024 GAONVEDA. Preserving Heritage, One Harvest at a Time.</p>
-        </div>
-        <nav>
-          <h2>Explore</h2>
-          <Link href="/products">Shop All</Link>
-          <Link href="/#story">Our Heritage</Link>
-          <Link href="/#coming-soon">Sustainability</Link>
-        </nav>
-        <nav>
-          <h2>Support</h2>
-          <Link href="/cart">Shipping Policy</Link>
-          <Link href="/wishlist">Contact Us</Link>
-        </nav>
-      </div>
-    </footer>
   );
 }

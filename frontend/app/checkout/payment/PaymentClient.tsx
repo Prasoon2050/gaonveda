@@ -40,22 +40,12 @@ export default function PaymentClient({ isBuyNow, orderData }: PaymentClientProp
   }
 
   return (
-    <div style={{ marginTop: "1rem" }}>
-      <div style={{ marginBottom: "2rem" }}>
+    <div className="payment-selector-container">
+      <div className="payment-options-list">
         {options.map((option) => (
           <label 
             key={option} 
-            style={{ 
-              display: "flex", 
-              alignItems: "center", 
-              gap: "0.5rem", 
-              padding: "1rem", 
-              border: paymentMethod === option ? "2px solid var(--color-primary)" : "1px solid #ccc",
-              borderRadius: "8px",
-              marginBottom: "0.5rem",
-              cursor: "pointer",
-              background: paymentMethod === option ? "#f9fdfa" : "white"
-            }}
+            className={`payment-option-card ${paymentMethod === option ? "selected" : ""}`}
           >
             <input 
               type="radio" 
@@ -63,13 +53,14 @@ export default function PaymentClient({ isBuyNow, orderData }: PaymentClientProp
               value={option} 
               checked={paymentMethod === option} 
               onChange={() => setPaymentMethod(option)} 
+              className="payment-radio"
             />
             {option}
           </label>
         ))}
       </div>
 
-      {error ? <p style={{ color: "red", marginBottom: "1rem" }}>{error}</p> : null}
+      {error ? <p className="payment-error-msg">{error}</p> : null}
       
       <button 
         className="premium-button" 
