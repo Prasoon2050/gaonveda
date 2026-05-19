@@ -10182,4 +10182,22 @@ input:checked + .slider::before {
   box-shadow: 0 6px 16px rgba(166, 28, 28, 0.3) !important;
 }
 
+.profile-load-error {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 160px 24px 80px;
+  text-align: center;
+}
+
+.profile-load-error h1 {
+  color: var(--heritage-forest);
+  font-size: clamp(32px, 5vw, 54px);
+  margin: 0 0 12px;
+}
+
+.profile-load-error p {
+  color: var(--on-surface-variant);
+  font-size: 18px;
+  margin: 0;
+}
 

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useState } from "react";
 
@@ -10,7 +9,6 @@ function Icon({ name }: { name: string }) {
 }
 
 export default function LoginPage() {
-  const router = useRouter();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
@@ -49,8 +47,7 @@ export default function LoginPage() {
       }
 
       setStatus(mode === "login" ? "Signed in successfully." : "Account created successfully.");
-      router.push("/profile");
-      router.refresh();
+      window.location.assign("/profile");
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Authentication failed");
     } finally {

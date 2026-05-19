@@ -13,6 +13,19 @@ import type {
   WishlistResponse,
 } from "./types";
 
+export class ApiError extends Error {
+  status: number;
+
+  constructor(path: string, status: number) {
+    super(`API ${path} returned ${status}`);
+    this.status = status;
+  }
+}
+
+export function isAuthApiError(error: unknown) {
+  return error instanceof ApiError && (error.status === 401 || error.status === 403);
+}
+
 async function authHeaders(): Promise<HeadersInit> {
   try {
     const cookieStore = await cookies();
@@ -42,7 +55,7 @@ async function getJsonStrict<T>(path: string): Promise<T> {
   const response = await fetch(backendApiUrl(path), { cache: "no-store", headers: await authHeaders() });
 
   if (!response.ok) {
-    throw new Error(`API ${path} returned ${response.status}`);
+    throw new ApiError(path, response.status);
   }
 
   return (await response.json()) as T;

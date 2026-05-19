@@ -3,7 +3,8 @@ import type { NextRequest } from "next/server";
 export const authCookieName = "gaon_veda_token";
 
 export function isSecureRequest(request: NextRequest) {
-  return request.nextUrl.protocol === "https:" || request.headers.get("x-forwarded-proto") === "https";
+  const forwardedProto = request.headers.get("x-forwarded-proto") || "";
+  return process.env.NODE_ENV === "production" || request.nextUrl.protocol === "https:" || forwardedProto.includes("https");
 }
 
 export function authCookieOptions(request: NextRequest) {
