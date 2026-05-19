@@ -101,9 +101,9 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
                         {isOutOfStock(item.product) ? "Out of stock" : item.product?.badge}
                       </span>
                     ) : null}
-                    <h2>
+                    <h2 title={item.product?.title || item.title}>
                       <Link href={`/products/${item.productSlug}`} style={{ textDecoration: "none", color: "inherit" }}>
-                        {item.product?.title || item.title}
+                        <span>{item.product?.title || item.title}</span>
                       </Link>
                     </h2>
                     <p className="cart-item-size" style={{ fontSize: "14px", fontWeight: "600", color: "var(--heritage-gold)", margin: "4px 0 0" }}>

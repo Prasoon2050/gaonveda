@@ -74,7 +74,7 @@ export default async function WishlistPage() {
                   )}
                 </div>
                 <div className="wishlist-body">
-                  <h2>{product.title}</h2>
+                  <h2 title={product.title}><span>{product.title}</span></h2>
                   <p>{product.subtitle || product.description}</p>
                   <div>
                     <ProductPrice product={product} />

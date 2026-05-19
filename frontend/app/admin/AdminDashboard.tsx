@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createAdminProduct, updateAdminOrder, updateAdminProduct } from "../../lib/client-api";
 import type { AdminOrdersResponse, AdminProductsResponse, AdminSummary, Order, Product } from "../../lib/types";
 
@@ -27,6 +28,13 @@ function stockLabel(product: Product) {
   if (status === "out") return "Out of stock";
   if (status === "low") return "Low stock";
   return "Healthy";
+}
+
+function getStatusColor(status: string) {
+  const s = status.toUpperCase();
+  if (s.includes("DELIVERED")) return { bg: "rgba(18, 53, 31, 0.08)", text: "var(--heritage-forest)" };
+  if (s.includes("PROCESSING") || s.includes("SHIPPED")) return { bg: "rgba(189, 131, 33, 0.08)", text: "var(--heritage-gold)" };
+  return { bg: "rgba(91, 75, 48, 0.08)", text: "var(--on-surface-variant)" };
 }
 
 function formNumber(value: FormDataEntryValue | null) {
@@ -73,31 +81,29 @@ function ImageLinkFields({ initialLinks = [] }: { initialLinks?: string[] }) {
   const preview = links.find(Boolean);
 
   return (
-    <div className="admin-image-fields">
-      <div className="admin-image-preview">
-        {preview ? <img src={preview} alt="" /> : <Icon name="image" />}
+    <div className="admin-image-fields" style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: "16px", alignItems: "start" }}>
+      <div className="admin-image-preview" style={{ width: "100px", height: "100px", borderRadius: "12px", border: "1px dashed var(--outline-variant)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", background: "var(--surface-container-low)" }}>
+        {preview ? <img src={preview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Icon name="image" />}
       </div>
-      <div className="admin-image-controls">
+      <div className="admin-image-controls" style={{ display: "grid", gap: "10px" }}>
         {links.map((link, index) => (
-          <div className="admin-image-link-row" key={`${index}-${links.length}`}>
+          <div className="admin-image-link-row" key={`${index}-${links.length}`} style={{ display: "flex", gap: "8px" }}>
             <input
+              className="premium-input"
               name="imageLinks"
               value={link}
               onChange={(event) => updateLink(index, event.target.value)}
               placeholder="https://example.com/product-image.jpg"
               aria-label={`Product image link ${index + 1}`}
             />
-            <button type="button" onClick={() => removeLink(index)} aria-label="Remove image link">
+            <button type="button" className="premium-button premium-button-secondary" style={{ padding: "0 12px", borderRadius: "8px" }} onClick={() => removeLink(index)} aria-label="Remove image link">
               <Icon name="close" />
             </button>
           </div>
         ))}
-        <div className="admin-image-actions">
-          <button type="button" onClick={addLink}>
-            <Icon name="add_photo_alternate" /> Add more image
-          </button>
-          <button type="button" className="admin-upload-button">
-            <Icon name="upload" /> Upload image
+        <div className="admin-image-actions" style={{ display: "flex", gap: "10px" }}>
+          <button type="button" className="premium-button premium-button-secondary" style={{ padding: "8px 16px", fontSize: "13px" }} onClick={addLink}>
+            <Icon name="add_photo_alternate" /> Add Image Field
           </button>
         </div>
       </div>
@@ -111,6 +117,7 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
   const [products, setProducts] = useState<Product[]>(productsData.items);
   const [message, setMessage] = useState("");
   const [pendingKey, setPendingKey] = useState("");
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const router = useRouter();
 
   const inventoryStats = useMemo(() => {
@@ -119,6 +126,12 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
     const out = products.filter((product) => product.stockStatus === "out" || Number(product.stockQuantity || 0) === 0).length;
     return { listed, low, out };
   }, [products]);
+
+  const handleSignOut = async () => {
+    await fetch("/api/auth/signout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  };
 
   async function saveOrder(orderId: string, formData: FormData) {
     setPendingKey(`order-${orderId}`);
@@ -131,7 +144,7 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
       })) as Order;
 
       setOrders((current) => current.map((order) => (order._id === orderId ? updated : order)));
-      setMessage(`Order ${updated.orderNumber} updated.`);
+      setMessage(`Order ${updated.orderNumber} updated successfully.`);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not update order.");
@@ -168,7 +181,7 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
       })) as Product;
 
       setProducts((current) => current.map((product) => (product.slug === productSlug ? updated : product)));
-      setMessage(`${updated.title} saved.`);
+      setMessage(`${updated.title} updated successfully.`);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not update product.");
@@ -215,213 +228,479 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
   }
 
   return (
-    <main className="admin-shell">
-      <aside className="admin-sidebar">
-        <div className="admin-person">
-          <span><Icon name="admin_panel_settings" /></span>
-          <div>
-            <strong>{adminName}</strong>
-            <small>Store administrator</small>
+    <div className="profile-layout-container">
+      <div className="promise-ornament promise-ornament-left" aria-hidden="true">
+        <img src="/leaf-ornament.svg" alt="" />
+      </div>
+
+      {/* Sidebar Navigation */}
+      <aside className="profile-sidebar glass-panel">
+        <div className="sidebar-user-info">
+          <div className="sidebar-avatar" style={{ background: "linear-gradient(135deg, var(--heritage-forest), var(--primary))", boxShadow: "0 8px 24px rgba(31, 66, 41, 0.25)" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: "32px", color: "var(--heritage-paper)" }}>admin_panel_settings</span>
           </div>
+          <h3>{adminName}</h3>
+          <p>Store Administrator</p>
         </div>
-        <nav>
-          {(["overview", "orders", "products"] as Tab[]).map((tab) => (
-            <button key={tab} className={activeTab === tab ? "active" : ""} onClick={() => setActiveTab(tab)}>
-              <Icon name={tab === "overview" ? "monitoring" : tab === "orders" ? "receipt_long" : "inventory_2"} />
-              {tab}
-            </button>
-          ))}
+
+        <nav className="sidebar-nav">
+          <Link className="nav-item" href="/profile">
+            <span className="material-symbols-outlined">person</span>
+            User Profile
+          </Link>
+          <button
+            className={`nav-item ${activeTab === "overview" ? "active" : ""}`}
+            onClick={() => setActiveTab("overview")}
+          >
+            <span className="material-symbols-outlined">dashboard</span>
+            Overview
+          </button>
+          <button
+            className={`nav-item ${activeTab === "orders" ? "active" : ""}`}
+            onClick={() => setActiveTab("orders")}
+          >
+            <span className="material-symbols-outlined">receipt_long</span>
+            Manage Orders
+          </button>
+          <button
+            className={`nav-item ${activeTab === "products" ? "active" : ""}`}
+            onClick={() => setActiveTab("products")}
+          >
+            <span className="material-symbols-outlined">inventory_2</span>
+            Manage Products
+          </button>
         </nav>
+
+        <button className="sidebar-signout-btn" onClick={() => setShowSignOutConfirm(true)}>
+          <span className="material-symbols-outlined">logout</span>
+          Sign Out
+        </button>
       </aside>
 
-      <section className="admin-content">
-        <header className="admin-header">
-          <div>
-            <span>GAONVEDA operations</span>
-            <h1>Inventory and order dashboard</h1>
+      {showSignOutConfirm && (
+        <div className="modal-overlay" onClick={() => setShowSignOutConfirm(false)}>
+          <div className="modal-content signout-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="material-symbols-outlined modal-icon">logout</span>
+              <h2>Confirm Sign Out</h2>
+            </div>
+            <p>Are you sure you want to sign out of your Gaonveda account?</p>
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowSignOutConfirm(false)}>Cancel</button>
+              <button className="btn-confirm" onClick={handleSignOut}>Sign Out</button>
+            </div>
           </div>
-          {message ? <p className="admin-message">{message}</p> : null}
-        </header>
+        </div>
+      )}
 
-        {activeTab === "overview" ? (
-          <>
-            <div className="admin-stat-grid">
-              <article><Icon name="payments" /><span>Revenue</span><strong>{summary.stats.revenueLabel}</strong></article>
-              <article><Icon name="shopping_bag" /><span>Orders</span><strong>{summary.stats.orderCount}</strong></article>
-              <article><Icon name="inventory_2" /><span>Products</span><strong>{summary.stats.productCount}</strong></article>
-              <article><Icon name="groups" /><span>Customers</span><strong>{summary.stats.customerCount}</strong></article>
+      {/* Content Area */}
+      <main className="profile-content-area" style={{ position: "relative" }}>
+        <div className="promise-ornament promise-ornament-right" aria-hidden="true">
+          <img src="/leaf-ornament.svg" alt="" />
+        </div>
+
+        {activeTab === "overview" && (
+          <section className="profile-tab-content fade-in-up">
+            <header className="content-header">
+              <span>GAONVEDA OPERATIONS</span>
+              <h1>Operations Overview</h1>
+              <p>Review real time performance metrics and manage organic product selections.</p>
+              {message && (
+                <div className="glass-panel" style={{ marginTop: "16px", padding: "12px 18px", borderLeft: "4px solid var(--heritage-gold)", color: "var(--heritage-leaf)" }}>
+                  {message}
+                </div>
+              )}
+            </header>
+
+            {/* Quick Stats Grid */}
+            <div className="profile-stats-row" style={{ marginBottom: "32px" }}>
+              <article className="stat-card">
+                <div className="stat-icon-wrapper loyalty">
+                  <span className="material-symbols-outlined">payments</span>
+                </div>
+                <div className="stat-info">
+                  <span className="stat-val text-gold">{summary.stats.revenueLabel}</span>
+                  <p>Revenue</p>
+                </div>
+              </article>
+
+              <article className="stat-card" onClick={() => setActiveTab("orders")}>
+                <div className="stat-icon-wrapper">
+                  <span className="material-symbols-outlined">shopping_bag</span>
+                </div>
+                <div className="stat-info">
+                  <span className="stat-val">{summary.stats.orderCount}</span>
+                  <p>Orders</p>
+                </div>
+              </article>
+
+              <article className="stat-card" onClick={() => setActiveTab("products")}>
+                <div className="stat-icon-wrapper">
+                  <span className="material-symbols-outlined">inventory_2</span>
+                </div>
+                <div className="stat-info">
+                  <span className="stat-val">{summary.stats.productCount}</span>
+                  <p>Products</p>
+                </div>
+              </article>
+
+              <article className="stat-card">
+                <div className="stat-icon-wrapper">
+                  <span className="material-symbols-outlined">groups</span>
+                </div>
+                <div className="stat-info">
+                  <span className="stat-val">{summary.stats.customerCount}</span>
+                  <p>Customers</p>
+                </div>
+              </article>
             </div>
 
-            <div className="admin-two-column">
-              <section className="admin-panel">
-                <div className="admin-panel-title">
-                  <h2>Recent orders</h2>
-                  <button onClick={() => setActiveTab("orders")}>Manage</button>
-                </div>
-                {orders.slice(0, 6).map((order) => (
-                  <div className="admin-list-row" key={order._id}>
-                    <div>
-                      <strong>#{order.orderNumber}</strong>
-                      <span>{order.user?.name || "Customer"} · {order.items.length} item(s)</span>
-                    </div>
-                    <em>{order.status}</em>
-                    <b>{order.totalLabel || money(order.total)}</b>
+            {/* Overview Details Grid */}
+            <div className="dashboard-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: "28px" }}>
+              {/* Recent Orders */}
+              <div className="dashboard-widget glass-panel" style={{ padding: "24px" }}>
+                <div className="widget-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", borderBottom: "1px dashed rgba(91, 75, 48, 0.1)", paddingBottom: "12px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span className="material-symbols-outlined" style={{ color: "var(--heritage-forest)" }}>receipt_long</span>
+                    <h3 style={{ margin: 0, fontFamily: "var(--font-display)", color: "var(--heritage-forest)" }}>Recent Orders</h3>
                   </div>
-                ))}
-              </section>
+                  <button onClick={() => setActiveTab("orders")} className="premium-button premium-button-secondary" style={{ padding: "6px 12px", fontSize: "12px" }}>Manage</button>
+                </div>
 
-              <section className="admin-panel">
-                <div className="admin-panel-title">
-                  <h2>Inventory alerts</h2>
-                  <button onClick={() => setActiveTab("products")}>Review</button>
-                </div>
-                <div className="inventory-mini-stats">
-                  <span>{inventoryStats.listed} listed</span>
-                  <span>{inventoryStats.low} low stock</span>
-                  <span>{inventoryStats.out} out</span>
-                </div>
-                {products.filter((product) => product.stockStatus !== "healthy").slice(0, 6).map((product) => (
-                  <div className="admin-list-row" key={product.slug}>
-                    <div>
-                      <strong>{product.title}</strong>
-                      <span>{product.category} · threshold {product.lowStockThreshold ?? 5}</span>
+                 <div style={{ display: "grid", gap: "12px" }}>
+                  {orders.slice(0, 5).map((order) => (
+                    <div key={order._id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", borderRadius: "12px", background: "rgba(255, 253, 247, 0.4)", border: "1px solid rgba(91, 75, 48, 0.05)" }}>
+                      <div>
+                        <strong style={{ display: "block", color: "var(--heritage-forest)" }}>#{order.orderNumber}</strong>
+                        <span style={{ fontSize: "12px", color: "var(--on-surface-variant)" }}>{order.user?.name || "Guest User"} &middot; {order.items.length} items</span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <span className="status-pill" style={{ background: getStatusColor(order.status).bg, color: getStatusColor(order.status).text, padding: "4px 8px", borderRadius: "999px", fontSize: "11px", fontWeight: "700" }}>{order.status}</span>
+                        <strong style={{ color: "var(--heritage-forest)" }}>{order.totalLabel || money(order.total)}</strong>
+                      </div>
                     </div>
-                    <em className={product.stockStatus === "out" ? "danger" : ""}>{stockLabel(product)}</em>
-                    <b>{product.stockQuantity ?? 0}</b>
-                  </div>
-                ))}
-              </section>
-            </div>
-          </>
-        ) : null}
+                  ))}
+                </div>
+              </div>
 
-        {activeTab === "orders" ? (
-          <section className="admin-panel admin-table-panel">
-            <div className="admin-panel-title">
-              <h2>All orders</h2>
-              <span>{orders.length} orders</span>
+              {/* Inventory Alerts */}
+              <div className="dashboard-widget glass-panel" style={{ padding: "24px" }}>
+                <div className="widget-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", borderBottom: "1px dashed rgba(91, 75, 48, 0.1)", paddingBottom: "12px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span className="material-symbols-outlined" style={{ color: "var(--heritage-forest)" }}>warning</span>
+                    <h3 style={{ margin: 0, fontFamily: "var(--font-display)", color: "var(--heritage-forest)" }}>Inventory Alerts</h3>
+                  </div>
+                  <button onClick={() => setActiveTab("products")} className="premium-button premium-button-secondary" style={{ padding: "6px 12px", fontSize: "12px" }}>Review</button>
+                </div>
+
+                <div className="inventory-mini-stats" style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
+                  <span style={{ fontSize: "12px", padding: "6px 12px", borderRadius: "8px", background: "rgba(18, 53, 31, 0.06)", color: "var(--heritage-forest)", fontWeight: "600" }}>{inventoryStats.listed} listed</span>
+                  <span style={{ fontSize: "12px", padding: "6px 12px", borderRadius: "8px", background: "rgba(189, 131, 33, 0.08)", color: "var(--heritage-gold)", fontWeight: "600" }}>{inventoryStats.low} low stock</span>
+                  <span style={{ fontSize: "12px", padding: "6px 12px", borderRadius: "8px", background: "rgba(159, 29, 22, 0.08)", color: "#9f1d16", fontWeight: "600" }}>{inventoryStats.out} out</span>
+                </div>
+
+                <div style={{ display: "grid", gap: "12px" }}>
+                  {products.filter((product) => product.stockStatus !== "healthy").slice(0, 5).map((product) => (
+                    <div key={product.slug} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", borderRadius: "12px", background: "rgba(255, 253, 247, 0.4)", border: "1px solid rgba(91, 75, 48, 0.05)" }}>
+                      <div>
+                        <strong style={{ display: "block", color: "var(--heritage-forest)", fontSize: "14px" }}>{product.title}</strong>
+                        <span style={{ fontSize: "12px", color: "var(--on-surface-variant)" }}>{product.category} &middot; threshold {product.lowStockThreshold ?? 5}</span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <span className={`stock-badge ${product.stockStatus || "healthy"}`} style={{ fontSize: "11px", fontWeight: "700" }}>{stockLabel(product)}</span>
+                        <strong style={{ color: "var(--heritage-forest)" }}>{product.stockQuantity ?? 0} left</strong>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="admin-table orders-table">
+          </section>
+        )}
+
+        {activeTab === "orders" && (
+          <section className="profile-tab-content fade-in-up">
+            <header className="content-header">
+              <span>Mindful Operations</span>
+              <h1>Customer Orders</h1>
+              <p>Track payments and manage processing status coordinates for all purchases.</p>
+              {message && (
+                <div className="glass-panel" style={{ marginTop: "16px", padding: "12px 18px", borderLeft: "4px solid var(--heritage-gold)", color: "var(--heritage-leaf)" }}>
+                  {message}
+                </div>
+              )}
+            </header>
+
+            <div style={{ display: "grid", gap: "20px" }}>
               {orders.map((order) => (
-                <form key={order._id} action={(formData) => saveOrder(order._id, formData)} className="admin-table-row">
-                  <div>
-                    <strong>#{order.orderNumber}</strong>
-                    <span>{new Date(order.createdAt || Date.now()).toLocaleDateString("en-IN")}</span>
+                <form key={order._id} action={(formData) => saveOrder(order._id, formData)} className="glass-panel" style={{ padding: "24px", borderRadius: "20px", display: "grid", gap: "20px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "16px", borderBottom: "1px dashed rgba(91, 75, 48, 0.1)", paddingBottom: "16px" }}>
+                    <div>
+                      <span style={{ fontSize: "12px", textTransform: "uppercase", color: "var(--on-surface-variant)", fontWeight: "600", letterSpacing: "0.04em" }}>Order Reference</span>
+                      <h3 style={{ margin: 0, fontFamily: "var(--font-display)", color: "var(--heritage-forest)" }}>#{order.orderNumber}</h3>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <span style={{ fontSize: "12px", textTransform: "uppercase", color: "var(--on-surface-variant)", fontWeight: "600", letterSpacing: "0.04em" }}>Total Payment</span>
+                      <h3 style={{ margin: 0, fontFamily: "var(--font-display)", color: "var(--heritage-gold)" }}>{order.totalLabel || money(order.total)}</h3>
+                    </div>
                   </div>
-                  <div>
-                    <strong>{order.user?.name || "Customer"}</strong>
-                    <span>{order.user?.email}</span>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" }}>
+                    <div>
+                      <strong style={{ display: "block", fontSize: "13px", color: "var(--heritage-forest)", marginBottom: "4px" }}>Customer Identity</strong>
+                      <p style={{ margin: 0, fontSize: "14px", fontWeight: "600" }}>{order.user?.name || "Guest User"}</p>
+                      <p style={{ margin: 0, fontSize: "13px", color: "var(--on-surface-variant)" }}>{order.user?.email}</p>
+                    </div>
+                    <div>
+                      <strong style={{ display: "block", fontSize: "13px", color: "var(--heritage-forest)", marginBottom: "4px" }}>Items &amp; Method</strong>
+                      <p style={{ margin: 0, fontSize: "13px", fontWeight: "500" }}>{order.items.map((item) => `${item.title} x${item.quantity}`).join(", ")}</p>
+                      <p style={{ margin: "4px 0 0", fontSize: "12px", color: "var(--on-surface-variant)" }}>Method: {order.paymentMethod}</p>
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "13px", color: "var(--heritage-forest)", marginBottom: "4px", fontWeight: "700" }}>Order Status</label>
+                      <select name="status" className="premium-input" defaultValue={order.status} aria-label="Order status">
+                        {ordersData.orderStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "13px", color: "var(--heritage-forest)", marginBottom: "4px", fontWeight: "700" }}>Payment Status</label>
+                      <select name="paymentStatus" className="premium-input" defaultValue={order.paymentStatus || "pending"} aria-label="Payment status">
+                        {ordersData.paymentStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <strong>{order.items.map((item) => `${item.title} x${item.quantity}`).join(", ")}</strong>
-                    <span>{order.paymentMethod}</span>
+
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
+                    <button type="submit" className="premium-button" disabled={pendingKey === `order-${order._id}`} style={{ padding: "10px 24px", fontSize: "14px" }}>
+                      {pendingKey === `order-${order._id}` ? "Saving Status..." : "Save Coordinates"}
+                    </button>
                   </div>
-                  <select name="status" defaultValue={order.status} aria-label="Order status">
-                    {ordersData.orderStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
-                  </select>
-                  <select name="paymentStatus" defaultValue={order.paymentStatus || "pending"} aria-label="Payment status">
-                    {ordersData.paymentStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
-                  </select>
-                  <strong>{order.totalLabel || money(order.total)}</strong>
-                  <button type="submit" disabled={pendingKey === `order-${order._id}`}>
-                    {pendingKey === `order-${order._id}` ? "Saving" : "Save"}
-                  </button>
                 </form>
               ))}
             </div>
           </section>
-        ) : null}
+        )}
 
-        {activeTab === "products" ? (
-          <div className="admin-products-layout">
-            <section className="admin-panel">
-              <div className="admin-panel-title">
-                <h2>Add product</h2>
-              </div>
-              <form action={createProduct} className="admin-product-form">
-                <label>Title<input name="title" required /></label>
-                <label>URL slug (optional)<input name="slug" placeholder="auto from title" /></label>
-                <label>Category<input name="category" required /></label>
-                <label>Badge<input name="badge" placeholder="Sun-dried, New, Low stock" /></label>
-                <label>Pack<input name="pack" placeholder="400g Jar" /></label>
-                <label>Price<input name="price" type="number" min="0" required /></label>
-                <label>Sale price<input name="salePrice" type="number" min="0" /></label>
-                <label>Stock<input name="stockQuantity" type="number" min="0" defaultValue="0" /></label>
-                <label>Low stock at<input name="lowStockThreshold" type="number" min="0" defaultValue="5" /></label>
-                <label>Story title<input name="storyTitle" placeholder="Aged in Tradition, Sun-Kissed for Soul" /></label>
-                <label className="admin-form-wide">Story paragraphs<textarea name="story" rows={5} placeholder={"Paragraph one...\n\nParagraph two..."} /></label>
-                <label className="admin-form-wide">Benefits<textarea name="benefits" rows={3} placeholder={"100% Sun-Dried Naturally\nSourced from Local Organic Farms"} /></label>
-                <div className="admin-form-wide">
-                  <span className="admin-field-label">Product images</span>
-                  <ImageLinkFields />
+        {activeTab === "products" && (
+          <section className="profile-tab-content fade-in-up">
+            <header className="content-header">
+              <span>Artisanal Collections</span>
+              <h1>Products &amp; Inventory</h1>
+              <p>List new treasures and adjust catalog credentials for active heritage products.</p>
+              {message && (
+                <div className="glass-panel" style={{ marginTop: "16px", padding: "12px 18px", borderLeft: "4px solid var(--heritage-gold)", color: "var(--heritage-leaf)" }}>
+                  {message}
                 </div>
-                <label>Description<textarea name="description" rows={3} /></label>
-                <label>Ingredients title<input name="ingredientSectionTitle" placeholder="Pure Ingredients, Honest Flavor" /></label>
-                <label className="admin-form-wide">Ingredients intro<textarea name="ingredientSectionText" rows={2} placeholder="We believe in complete transparency..." /></label>
-                <label className="admin-form-wide">Ingredients<textarea name="ingredients" rows={5} placeholder={"eco | Raw Mangoes | Crisp, farm-fresh\nwater_drop | Mustard Oil | Cold-pressed pure"} /></label>
-                <label className="admin-form-wide">Tags<textarea name="tags" rows={3} placeholder={"No Added Preservatives\nGluten-Free\nVegan\nTraditionally Fermented"} /></label>
-                <label>Visibility<select name="isListed" defaultValue="true"><option value="true">Listed</option><option value="false">Hidden</option></select></label>
-                <div className="admin-form-actions">
-                  <button className="admin-primary-action" type="submit" disabled={pendingKey === "create-product"}>
-                    <Icon name="add" /> {pendingKey === "create-product" ? "Adding product" : "Add product"}
-                  </button>
-                </div>
-              </form>
-            </section>
+              )}
+            </header>
 
-            <section className="admin-panel admin-table-panel">
-              <div className="admin-panel-title">
-                <h2>Products and inventory</h2>
-                <span>{products.length} products</span>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "32px" }}>
+              {/* Add Product Panel */}
+              <div className="glass-panel" style={{ padding: "32px", borderRadius: "24px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "24px", borderBottom: "1px dashed rgba(91, 75, 48, 0.1)", paddingBottom: "12px" }}>
+                  <span className="material-symbols-outlined" style={{ color: "var(--heritage-forest)", fontSize: "28px" }}>add_box</span>
+                  <h2 style={{ margin: 0, fontFamily: "var(--font-display)", color: "var(--heritage-forest)" }}>Add New Product</h2>
+                </div>
+
+                <form action={createProduct} className="admin-product-form" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Title</label>
+                    <input className="premium-input" name="title" required placeholder="e.g. Organic Mustard Oil" />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Slug (optional)</label>
+                    <input className="premium-input" name="slug" placeholder="e.g. organic-mustard-oil" />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Category</label>
+                    <input className="premium-input" name="category" required placeholder="e.g. Oils" />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Badge</label>
+                    <input className="premium-input" name="badge" placeholder="e.g. Sun-dried, Cold-pressed" />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Pack Size</label>
+                    <input className="premium-input" name="pack" placeholder="e.g. 500ml Glass Bottle" />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Price (₹)</label>
+                    <input className="premium-input" name="price" type="number" min="0" required placeholder="e.g. 299" />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Sale Price (₹)</label>
+                    <input className="premium-input" name="salePrice" type="number" min="0" placeholder="e.g. 249" />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Stock Quantity</label>
+                    <input className="premium-input" name="stockQuantity" type="number" min="0" defaultValue="0" />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Low Stock Alert Threshold</label>
+                    <input className="premium-input" name="lowStockThreshold" type="number" min="0" defaultValue="5" />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Story Section Title</label>
+                    <input className="premium-input" name="storyTitle" placeholder="e.g. Crafted in the Heart of Rajasthan" />
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Description</label>
+                    <textarea className="premium-input" name="description" rows={3} placeholder="A short introduction to the product..." />
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Story Paragraphs</label>
+                    <textarea className="premium-input" name="story" rows={5} placeholder="One paragraph per block..." />
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Health Benefits</label>
+                    <textarea className="premium-input" name="benefits" rows={3} placeholder="Put one benefit per line..." />
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <span className="admin-field-label" style={{ display: "block", marginBottom: "8px", color: "var(--on-surface-variant)" }}>Product Images</span>
+                    <ImageLinkFields />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Ingredients Header</label>
+                    <input className="premium-input" name="ingredientSectionTitle" placeholder="e.g. 100% Pure Sourced" />
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Ingredients Intro Text</label>
+                    <textarea className="premium-input" name="ingredientSectionText" rows={2} placeholder="Brief introduction text about ingredients..." />
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Ingredients Details</label>
+                    <textarea className="premium-input" name="ingredients" rows={5} placeholder="icon_name | title | description (one per line)" />
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Product Tags</label>
+                    <textarea className="premium-input" name="tags" rows={3} placeholder="e.g. Vegan (one per line)" />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Product Visibility</label>
+                    <select className="premium-input" name="isListed" defaultValue="true">
+                      <option value="true">Listed</option>
+                      <option value="false">Hidden</option>
+                    </select>
+                  </div>
+                  <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
+                    <button className="premium-button" type="submit" disabled={pendingKey === "create-product"}>
+                      <Icon name="add" /> {pendingKey === "create-product" ? "Listing..." : "List Product"}
+                    </button>
+                  </div>
+                </form>
               </div>
-              <div className="admin-table products-table">
+
+              {/* Edit / List Products Table */}
+              <div style={{ display: "grid", gap: "24px" }}>
                 {products.map((product) => (
-                  <form key={product.slug} action={(formData) => saveProduct(product.slug, formData)} className="admin-table-row">
-                    <div className="admin-product-card-head">
+                  <form key={product.slug} action={(formData) => saveProduct(product.slug, formData)} className="glass-panel" style={{ padding: "28px", borderRadius: "24px", display: "grid", gap: "20px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px", borderBottom: "1px dashed rgba(91, 75, 48, 0.1)", paddingBottom: "16px" }}>
                       <div>
-                        <strong>{product.title}</strong>
-                        <span>{product.slug}</span>
+                        <span style={{ fontSize: "12px", textTransform: "uppercase", color: "var(--on-surface-variant)", fontWeight: "600", letterSpacing: "0.04em" }}>Catalog Product</span>
+                        <h3 style={{ margin: 0, fontFamily: "var(--font-display)", color: "var(--heritage-forest)" }}>{product.title}</h3>
+                        <span style={{ fontSize: "12px", color: "var(--on-surface-variant)" }}>Slug: {product.slug}</span>
                       </div>
-                      <span className={`stock-badge ${product.stockStatus || "healthy"}`}>{stockLabel(product)}</span>
+                      <span className={`stock-badge ${product.stockStatus || "healthy"}`} style={{ fontSize: "12px", fontWeight: "700" }}>{stockLabel(product)}</span>
                     </div>
-                    <div className="admin-product-card-grid">
-                      <label>Product<input name="title" defaultValue={product.title} /></label>
-                      <label>Category<input name="category" defaultValue={product.category} /></label>
-                      <label>Badge<input name="badge" defaultValue={product.badge || ""} placeholder="Sun-dried" /></label>
-                      <label>Pack<input name="pack" defaultValue={product.pack || ""} /></label>
-                      <label>Price<input name="price" type="number" min="0" defaultValue={product.price} /></label>
-                      <label>Sale<input name="salePrice" type="number" min="0" defaultValue={product.salePrice || ""} /></label>
-                      <label>Stock<input name="stockQuantity" type="number" min="0" defaultValue={product.stockQuantity || 0} /></label>
-                      <label>Low at<input name="lowStockThreshold" type="number" min="0" defaultValue={product.lowStockThreshold ?? 5} /></label>
-                      <label>Order<input name="sortOrder" type="number" defaultValue={product.sortOrder || 0} /></label>
-                      <label>Status<select name="isListed" defaultValue={String(product.isListed !== false)}><option value="true">Listed</option><option value="false">Hidden</option></select></label>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "16px" }}>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Title</label>
+                        <input className="premium-input" name="title" defaultValue={product.title} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Category</label>
+                        <input className="premium-input" name="category" defaultValue={product.category} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Badge</label>
+                        <input className="premium-input" name="badge" defaultValue={product.badge || ""} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Pack Size</label>
+                        <input className="premium-input" name="pack" defaultValue={product.pack || ""} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Price (₹)</label>
+                        <input className="premium-input" name="price" type="number" min="0" defaultValue={product.price} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Sale Price (₹)</label>
+                        <input className="premium-input" name="salePrice" type="number" min="0" defaultValue={product.salePrice || ""} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Stock Quantity</label>
+                        <input className="premium-input" name="stockQuantity" type="number" min="0" defaultValue={product.stockQuantity || 0} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Low Alert Level</label>
+                        <input className="premium-input" name="lowStockThreshold" type="number" min="0" defaultValue={product.lowStockThreshold ?? 5} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Sort Order</label>
+                        <input className="premium-input" name="sortOrder" type="number" defaultValue={product.sortOrder || 0} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Visibility</label>
+                        <select className="premium-input" name="isListed" defaultValue={String(product.isListed !== false)}>
+                          <option value="true">Listed</option>
+                          <option value="false">Hidden</option>
+                        </select>
+                      </div>
                     </div>
-                    <div className="admin-product-content-grid">
-                      <label>Story title<input name="storyTitle" defaultValue={product.storyTitle || ""} /></label>
-                      <label>Ingredients title<input name="ingredientSectionTitle" defaultValue={product.ingredientSectionTitle || ""} /></label>
-                      <label className="admin-form-wide">Description<textarea name="description" rows={3} defaultValue={product.description || ""} /></label>
-                      <label className="admin-form-wide">Story paragraphs<textarea name="story" rows={5} defaultValue={(product.story || []).join("\n\n")} /></label>
-                      <label className="admin-form-wide">Benefits<textarea name="benefits" rows={3} defaultValue={(product.benefits || []).join("\n")} /></label>
-                      <label className="admin-form-wide">Ingredients intro<textarea name="ingredientSectionText" rows={2} defaultValue={product.ingredientSectionText || ""} /></label>
-                      <label className="admin-form-wide">Ingredients<textarea name="ingredients" rows={5} defaultValue={ingredientsText(product)} /></label>
-                      <label className="admin-form-wide">Tags<textarea name="tags" rows={3} defaultValue={(product.tags || []).join("\n")} /></label>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px", marginTop: "12px" }}>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Story Title</label>
+                        <input className="premium-input" name="storyTitle" defaultValue={product.storyTitle || ""} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Ingredients Title</label>
+                        <input className="premium-input" name="ingredientSectionTitle" defaultValue={product.ingredientSectionTitle || ""} />
+                      </div>
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Description</label>
+                        <textarea className="premium-input" name="description" rows={3} defaultValue={product.description || ""} />
+                      </div>
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Story Paragraphs</label>
+                        <textarea className="premium-input" name="story" rows={5} defaultValue={(product.story || []).join("\n\n")} />
+                      </div>
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Benefits</label>
+                        <textarea className="premium-input" name="benefits" rows={3} defaultValue={(product.benefits || []).join("\n")} />
+                      </div>
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Ingredients Introduction</label>
+                        <textarea className="premium-input" name="ingredientSectionText" rows={2} defaultValue={product.ingredientSectionText || ""} />
+                      </div>
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Ingredients Detail List</label>
+                        <textarea className="premium-input" name="ingredients" rows={5} defaultValue={ingredientsText(product)} />
+                      </div>
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Product Tags</label>
+                        <textarea className="premium-input" name="tags" rows={3} defaultValue={(product.tags || []).join("\n")} />
+                      </div>
                     </div>
-                    <div className="admin-product-images-block">
-                      <span className="admin-field-label">Product images</span>
+
+                    <div style={{ marginTop: "12px" }}>
+                      <span className="admin-field-label" style={{ display: "block", marginBottom: "8px" }}>Product Images</span>
                       <ImageLinkFields initialLinks={product.images || []} />
                     </div>
-                    <div className="admin-form-actions">
-                      <button className="admin-primary-action admin-product-save" type="submit" disabled={pendingKey === `product-${product.slug}`}>
-                        <Icon name="save" /> {pendingKey === `product-${product.slug}` ? "Updating details" : "Update details"}
+
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
+                      <button className="premium-button" type="submit" disabled={pendingKey === `product-${product.slug}`}>
+                        <Icon name="save" /> {pendingKey === `product-${product.slug}` ? "Saving..." : "Update Details"}
                       </button>
                     </div>
                   </form>
                 ))}
               </div>
-            </section>
-          </div>
-        ) : null}
-      </section>
-    </main>
+            </div>
+          </section>
+        )}
+      </main>
+    </div>
   );
 }

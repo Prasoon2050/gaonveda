@@ -34,6 +34,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const isWishlisted = wishlist.items.some((item) => item.productSlug === product.slug);
   const outOfStock = isOutOfStock(product);
 
+  const reviewCount = reviews.items.length || reviews.summary.count || product.reviewCount || 0;
+  const avgRating = reviews.items.length > 0
+    ? parseFloat((reviews.items.reduce((acc, item) => acc + item.rating, 0) / reviews.items.length).toFixed(1))
+    : (reviews.summary.average || product.rating || 0);
+
   return (
     <div className="pdp-page">
       <div className="promise-ornament promise-ornament-left" aria-hidden="true">
@@ -59,12 +64,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <h1>{product.title}</h1>
             <div className="pdp-rating">
               <div>
-                {ratingIcons(product.rating).map((star, index) => (
+                {ratingIcons(avgRating).map((star, index) => (
                   <Icon name={star} fill={star !== "star_outline"} key={`${star}-${index}`} />
                 ))}
               </div>
               <span>
-                {product.rating || 0}/5 ({product.reviewCount || 0} reviews)
+                {avgRating}/5 ({reviewCount} {reviewCount === 1 ? "review" : "reviews"})
               </span>
             </div>
             <ProductPrice product={product} className="pdp-price" />
@@ -88,26 +93,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </section>
 
-        <section className="pdp-story">
-          <div>
-            <h2>{product.storyTitle || `${product.title}, Made the Old Way`}</h2>
-            {story.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-            <ul>
-              {(product.benefits || ["Small-batch preparation", "Sourced through trusted farming partners"]).map((benefit, index) => (
-                <li key={benefit}>
-                  <Icon name={index === 0 ? "energy_savings_leaf" : "agriculture"} /> {benefit}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <figure>
-            <img src="/hero.png" alt="Traditional ingredients" />
-          </figure>
-        </section>
-
-        <section className="pdp-ingredients">
+                <section className="pdp-ingredients">
           <header>
             <h2>{product.ingredientSectionTitle || "Pure Ingredients, Honest Flavor"}</h2>
             <p>{product.ingredientSectionText || "We believe in complete transparency. Every pack contains only what nature provides, blended with care."}</p>
@@ -128,6 +114,25 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </section>
 
+        <section className="pdp-story">
+          <div>
+            <h2>{product.storyTitle || `${product.title}, Made the Old Way`}</h2>
+            {story.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+            <ul>
+              {(product.benefits || ["Small-batch preparation", "Sourced through trusted farming partners"]).map((benefit, index) => (
+                <li key={benefit}>
+                  <Icon name={index === 0 ? "energy_savings_leaf" : "agriculture"} /> {benefit}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <figure>
+            <img src="/hero.png" alt="Traditional ingredients" />
+          </figure>
+        </section>
+
         <section className="pdp-reviews">
           <header>
             <div>
@@ -138,8 +143,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <h2>Reviews from the Pantry</h2>
             </div>
             <div className="review-summary">
-              <strong>{reviews.summary.average || product.rating || 0}</strong>
-              <span>{reviews.summary.count || product.reviewCount || 0} reviews</span>
+              <div className="review-summary-score">
+                <strong>{avgRating}</strong>
+                <span>out of 5</span>
+              </div>
+              <div className="review-summary-details">
+                <div className="review-summary-stars">
+                  {ratingIcons(avgRating).map((star, index) => (
+                    <Icon name={star} fill={star !== "star_outline"} key={`summary-star-${star}-${index}`} />
+                  ))}
+                </div>
+                <span className="review-summary-count">Based on {reviewCount} {reviewCount === 1 ? "review" : "reviews"}</span>
+              </div>
             </div>
           </header>
           <div className="review-layout">

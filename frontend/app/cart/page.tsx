@@ -64,8 +64,8 @@ export default async function CartPage() {
                     <div className="cart-item-body">
                       <div>
                         <span className={isOutOfStock(item.product) ? "cart-badge out-of-stock-label" : "cart-badge"}>{isOutOfStock(item.product) ? "Out of stock" : item.product.badge}</span>
-                        <h2>{item.product.title}</h2>
-                        <p>{item.product.description}</p>
+                        <h2 title={item.product.title}><span>{item.product.title}</span></h2>
+                        <p>{item.product.subtitle || item.product.description}</p>
                       </div>
                       <div className="cart-item-bottom">
                         <CartItemControls productSlug={item.productSlug} quantity={item.quantity} />

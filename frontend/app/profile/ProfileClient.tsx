@@ -18,6 +18,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
   const [smsUpdates, setSmsUpdates] = useState(profile.user.preferences?.smsUpdates || false);
   const [phone, setPhone] = useState(profile.user.phone || "");
   const [phoneEditable, setPhoneEditable] = useState(false);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const router = useRouter();
 
   const defaultAddress = profile.user.addresses?.find((addr) => addr.isDefault) || profile.user.addresses?.[0];
@@ -115,12 +116,28 @@ export function ProfileClient({ profile }: ProfileClientProps) {
           </button>
         </nav>
 
-        <button className="sidebar-signout-btn" onClick={handleSignOut}>
+        <button className="sidebar-signout-btn" onClick={() => setShowSignOutConfirm(true)}>
           <span className="material-symbols-outlined">logout</span>
           Sign Out
         </button>
 
       </aside>
+
+      {showSignOutConfirm && (
+        <div className="modal-overlay" onClick={() => setShowSignOutConfirm(false)}>
+          <div className="modal-content signout-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="material-symbols-outlined modal-icon">logout</span>
+              <h2>Confirm Sign Out</h2>
+            </div>
+            <p>Are you sure you want to sign out of your Gaonveda account?</p>
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowSignOutConfirm(false)}>Cancel</button>
+              <button className="btn-confirm" onClick={handleSignOut}>Sign Out</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Content Area */}
       <main className="profile-content-area" style={{ position: "relative"}}>

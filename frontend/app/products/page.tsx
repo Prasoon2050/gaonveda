@@ -84,10 +84,10 @@ export default async function ProductsPage() {
                     <span className={outOfStock ? "out-of-stock-label" : ""}>{productStockLabel(product) || product.badge}</span>
                   </div>
                   <div className="catalog-card-body">
-                    <h2>{product.title}</h2>
+                    <h2 title={product.title}><span>{product.title}</span></h2>
                     <p>{product.subtitle}</p>
                     <ProductPrice product={product} />
-                    <div>
+                    <div className="catalog-card-actions">
                       <AddToCartButton productSlug={product.slug} selectedSize={product.pack} disabled={outOfStock} disabledLabel="Notify Me">
                         Add to Cart
                       </AddToCartButton>
