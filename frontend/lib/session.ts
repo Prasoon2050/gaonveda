@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
-
-const authCookieName = "gaon_veda_token";
+import { authCookieName } from "./auth-cookie";
 
 export async function isLoggedIn() {
   const cookieStore = await cookies();

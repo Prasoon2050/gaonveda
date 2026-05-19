@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-
-const cookieName = "gaon_veda_token";
+import { authCookieName } from "../../../../lib/auth-cookie";
 
 export async function POST() {
   const response = NextResponse.json({ ok: true });
-  response.cookies.delete(cookieName);
+  response.cookies.delete(authCookieName);
   return response;
 }

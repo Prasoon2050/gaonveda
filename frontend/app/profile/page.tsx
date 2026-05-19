@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getProfile, getCart } from "../../lib/api";
+import { getProfileStrict, getCart } from "../../lib/api";
 import { isLoggedIn } from "../../lib/session";
 import SignOutButton from "./SignOutButton";
 import AddressForm from "./AddressForm";
@@ -19,7 +19,13 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const profile = await getProfile();
+  let profile;
+  try {
+    profile = await getProfileStrict();
+  } catch {
+    redirect("/login");
+  }
+
   const cart = await getCart();
   const defaultAddress = profile.user.addresses?.find((address) => address.isDefault) || profile.user.addresses?.[0];
 

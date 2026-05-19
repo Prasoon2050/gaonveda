@@ -26,7 +26,8 @@ function extractToken(req) {
  */
 export async function attachUser(req, _res, next) {
   try {
-    const tokenPayload = verifyToken(extractToken(req));
+    const token = extractToken(req);
+    const tokenPayload = verifyToken(token);
 
     if (tokenPayload?.sub && mongoose.isValidObjectId(tokenPayload.sub)) {
       const user = await User.findById(tokenPayload.sub);
@@ -37,11 +38,16 @@ export async function attachUser(req, _res, next) {
       }
     }
 
+    if (token) {
+      req.invalidAuthToken = true;
+    }
+
     const userId = req.header("x-user-id");
     if (userId && mongoose.isValidObjectId(userId)) {
       const user = await User.findById(userId);
       if (user) {
         req.user = user;
+        req.authenticatedWithLegacyHeader = true;
         return next();
       }
     }
@@ -72,7 +78,14 @@ export async function attachUser(req, _res, next) {
  * Must be used AFTER `attachUser`.
  */
 export function requireAuth(req, _res, next) {
-  if (!req.user) {
+  if (req.invalidAuthToken) {
+    return next(AppError.unauthorized("Invalid or expired authentication token"));
+  }
+
+  const hasRealAuth = req.authenticatedWithToken || req.authenticatedWithLegacyHeader;
+  const allowDevelopmentFallback = process.env.NODE_ENV !== "production" && req.user;
+
+  if (!req.user || (!hasRealAuth && !allowDevelopmentFallback)) {
     return next(AppError.unauthorized("Authentication required"));
   }
   next();

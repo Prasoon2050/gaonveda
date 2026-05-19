@@ -1,8 +1,7 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-
-const backendUrl = process.env.BACKEND_API_URL || "http://localhost:4000";
-const cookieName = "gaon_veda_token";
+import { authCookieName } from "../../../../lib/auth-cookie";
+import { backendApiUrl } from "../../../../lib/backend-url";
 
 type RouteContext = {
   params: Promise<{ path: string[] }>;
@@ -11,8 +10,8 @@ type RouteContext = {
 async function proxy(request: NextRequest, context: RouteContext) {
   const { path } = await context.params;
   const cookieStore = await cookies();
-  const token = cookieStore.get(cookieName)?.value;
-  const target = `${backendUrl}/${path.join("/")}${request.nextUrl.search}`;
+  const token = cookieStore.get(authCookieName)?.value;
+  const target = backendApiUrl(`/${path.join("/")}${request.nextUrl.search}`);
   const headers: HeadersInit = { "Content-Type": request.headers.get("content-type") || "application/json" };
 
   if (token) {

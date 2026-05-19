@@ -1,4 +1,6 @@
 import { cookies } from "next/headers";
+import { authCookieName } from "./auth-cookie";
+import { backendApiUrl } from "./backend-url";
 import { fallbackCart, fallbackProducts, fallbackProfile, fallbackReviews, fallbackWishlist } from "./fallback-data";
 import type {
   AdminOrdersResponse,
@@ -10,9 +12,6 @@ import type {
   ReviewsResponse,
   WishlistResponse,
 } from "./types";
-
-const apiBaseUrl = process.env.BACKEND_API_URL || "http://localhost:4000";
-const authCookieName = "gaon_veda_token";
 
 async function authHeaders(): Promise<HeadersInit> {
   try {
@@ -26,7 +25,7 @@ async function authHeaders(): Promise<HeadersInit> {
 
 async function getJson<T>(path: string, fallback: T): Promise<T> {
   try {
-    const response = await fetch(`${apiBaseUrl}${path}`, { cache: "no-store", headers: await authHeaders() });
+    const response = await fetch(backendApiUrl(path), { cache: "no-store", headers: await authHeaders() });
 
     if (!response.ok) {
       throw new Error(`API ${path} returned ${response.status}`);
@@ -40,7 +39,7 @@ async function getJson<T>(path: string, fallback: T): Promise<T> {
 }
 
 async function getJsonStrict<T>(path: string): Promise<T> {
-  const response = await fetch(`${apiBaseUrl}${path}`, { cache: "no-store", headers: await authHeaders() });
+  const response = await fetch(backendApiUrl(path), { cache: "no-store", headers: await authHeaders() });
 
   if (!response.ok) {
     throw new Error(`API ${path} returned ${response.status}`);
