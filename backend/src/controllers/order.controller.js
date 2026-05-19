@@ -5,6 +5,7 @@ import { formatMoney, toPlain, buildOrderNumber } from "../utils/helpers.js";
 import { getHydratedCart, findProductsBySlug } from "./cart.controller.js";
 
 const shippingFee = Number(process.env.SHIPPING_FEE || 80);
+const userCancellableStatuses = ["placed", "confirmed"];
 
 // ─── Internal Helpers ──────────────────────────────────────────────
 
@@ -115,6 +116,30 @@ export async function listOrders(req, res, next) {
     res.json({
       items: orders.map((order) => ({ ...order, totalLabel: formatMoney(order.total) })),
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PATCH /api/orders/:id/cancel
+ */
+export async function cancelOrder(req, res, next) {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, user: req.user._id });
+
+    if (!order) {
+      throw AppError.notFound("Order not found");
+    }
+
+    if (!userCancellableStatuses.includes(order.status)) {
+      throw AppError.badRequest("This order can no longer be cancelled");
+    }
+
+    order.status = "cancelled";
+    await order.save();
+
+    res.json({ order: { ...toPlain(order), totalLabel: formatMoney(order.total) } });
   } catch (error) {
     next(error);
   }

@@ -9,14 +9,14 @@ function Icon({ name }: { name: string }) {
   return <span className="material-symbols-outlined">{name}</span>;
 }
 
-export function CartItemControls({ productSlug, quantity }: { productSlug: string; quantity: number }) {
+export function CartItemControls({ productSlug, quantity, selectedSize }: { productSlug: string; quantity: number; selectedSize?: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
   async function update(nextQuantity: number) {
     setPending(true);
     try {
-      await updateCartItem(productSlug, Math.max(1, nextQuantity));
+      await updateCartItem(productSlug, Math.max(1, nextQuantity), selectedSize);
       router.refresh();
     } finally {
       setPending(false);
@@ -36,7 +36,7 @@ export function CartItemControls({ productSlug, quantity }: { productSlug: strin
   );
 }
 
-export function RemoveCartItemButton({ productSlug, label }: { productSlug: string; label: string }) {
+export function RemoveCartItemButton({ productSlug, label, selectedSize }: { productSlug: string; label: string; selectedSize?: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
@@ -45,7 +45,7 @@ export function RemoveCartItemButton({ productSlug, label }: { productSlug: stri
     event.stopPropagation();
     setPending(true);
     try {
-      await removeCartItem(productSlug);
+      await removeCartItem(productSlug, selectedSize);
       router.refresh();
     } finally {
       setPending(false);

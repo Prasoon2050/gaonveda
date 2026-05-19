@@ -605,6 +605,14 @@ img {
   margin: 0 0 8px;
 }
 
+.cart-pack-size {
+  color: var(--heritage-gold);
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
 .cart-item p {
   color: var(--on-surface-variant);
   font-size: 15px;
@@ -7540,6 +7548,8 @@ body > footer,
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
   margin-top: 8px;
 }
 
@@ -7551,6 +7561,14 @@ body > footer,
 .order-card-footer strong {
   font-size: 16px;
   color: var(--heritage-gold);
+}
+
+.order-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .order-action-btn {
@@ -7713,22 +7731,59 @@ body > footer,
 .history-card-actions {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.secondary-action-btn {
+.secondary-action-btn,
+.cancel-order-btn,
+.return-order-btn {
   font-size: 13px;
   font-weight: 700;
-  color: var(--heritage-gold);
   background: none;
-  border: 1px solid var(--heritage-gold);
   padding: 10px 18px;
   border-radius: 10px;
   cursor: pointer;
   transition: all 200ms ease;
 }
 
+.secondary-action-btn {
+  color: var(--heritage-gold);
+  border: 1px solid var(--heritage-gold);
+}
+
 .secondary-action-btn:hover {
   background: rgba(189, 131, 33, 0.05);
+}
+
+.cancel-order-btn {
+  color: var(--heritage-clay);
+  border: 1px solid rgba(143, 54, 35, 0.34);
+  background: rgba(143, 54, 35, 0.06);
+}
+
+.cancel-order-btn:hover:not(:disabled) {
+  background: rgba(143, 54, 35, 0.12);
+}
+
+.cancel-order-btn:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.return-order-btn {
+  color: var(--heritage-forest);
+  border: 1px solid rgba(26, 80, 48, 0.34);
+  background: rgba(26, 80, 48, 0.06);
+}
+
+.return-order-btn:hover {
+  background: rgba(26, 80, 48, 0.12);
+}
+
+.cancel-order-btn.compact,
+.return-order-btn.compact {
+  padding: 8px 14px;
 }
 
 .primary-action-btn {
@@ -10200,4 +10255,3 @@ input:checked + .slider::before {
   font-size: 18px;
   margin: 0;
 }
-

@@ -30,7 +30,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     ? product.ingredients
     : [{ icon: "spa", title: product.category, text: product.subtitle || "Crafted with traditional care" }];
   const tags = product.tags?.length ? product.tags : [product.category, product.pack].filter(Boolean);
-  const sizeOptions = (product.sizeOptions || [product.pack]).filter(Boolean) as string[];
+  const sizeOptions = (product.sizeOptions?.length ? product.sizeOptions : [product.pack]).filter(Boolean) as string[];
   const isWishlisted = wishlist.items.some((item) => item.productSlug === product.slug);
   const outOfStock = isOutOfStock(product);
 

@@ -24,15 +24,16 @@ export function addCartItem(body: JsonBody) {
   });
 }
 
-export function updateCartItem(productSlug: string, quantity: number) {
+export function updateCartItem(productSlug: string, quantity: number, selectedSize?: string) {
   return apiRequest(`/api/cart/items/${productSlug}`, {
     method: "PATCH",
-    body: JSON.stringify({ quantity }),
+    body: JSON.stringify({ quantity, selectedSize }),
   });
 }
 
-export function removeCartItem(productSlug: string) {
-  return apiRequest(`/api/cart/items/${productSlug}`, {
+export function removeCartItem(productSlug: string, selectedSize?: string) {
+  const qs = selectedSize ? `?selectedSize=${encodeURIComponent(selectedSize)}` : "";
+  return apiRequest(`/api/cart/items/${productSlug}${qs}`, {
     method: "DELETE",
   });
 }
@@ -48,6 +49,12 @@ export function buyNow(body: JsonBody & { paymentMethod?: string }) {
   return apiRequest("/api/orders/buy-now", {
     method: "POST",
     body: JSON.stringify(body),
+  });
+}
+
+export function cancelUserOrder(orderId: string) {
+  return apiRequest(`/api/orders/${orderId}/cancel`, {
+    method: "PATCH",
   });
 }
 

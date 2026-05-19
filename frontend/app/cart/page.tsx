@@ -56,8 +56,8 @@ export default async function CartPage() {
                 if (!item.product) return null;
 
                 return (
-                  <article className="cart-item card-hover" key={item.productSlug}>
-                    <RemoveCartItemButton productSlug={item.productSlug} label={item.product.title} />
+                  <article className="cart-item card-hover" key={`${item.productSlug}-${item.selectedSize || "default"}`}>
+                    <RemoveCartItemButton productSlug={item.productSlug} selectedSize={item.selectedSize} label={item.product.title} />
                     <div className="cart-item-image">
                       <ProductImage product={item.product} alt={item.product.title} />
                     </div>
@@ -65,10 +65,11 @@ export default async function CartPage() {
                       <div>
                         <span className={isOutOfStock(item.product) ? "cart-badge out-of-stock-label" : "cart-badge"}>{isOutOfStock(item.product) ? "Out of stock" : item.product.badge}</span>
                         <h2 title={item.product.title}><span>{item.product.title}</span></h2>
+                        {item.selectedSize ? <span className="cart-pack-size">Pack Size: {item.selectedSize}</span> : null}
                         <p>{item.product.subtitle || item.product.description}</p>
                       </div>
                       <div className="cart-item-bottom">
-                        <CartItemControls productSlug={item.productSlug} quantity={item.quantity} />
+                        <CartItemControls productSlug={item.productSlug} selectedSize={item.selectedSize} quantity={item.quantity} />
                         <strong>{item.lineTotalLabel}</strong>
                       </div>
                     </div>

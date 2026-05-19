@@ -89,6 +89,9 @@ function productPayload(body, existingSlug) {
   if (!slug) {
     throw AppError.badRequest("Product slug or title is required");
   }
+  const sizeOptions = splitList(body.sizeOptions) || [];
+  const pack = String(body.pack || sizeOptions[0] || "").trim();
+  const packOptions = Array.from(new Set([pack, ...sizeOptions].filter(Boolean)));
 
   const payload = {
     slug,
@@ -101,8 +104,8 @@ function productPayload(body, existingSlug) {
     story: splitParagraphs(body.story),
     ingredientSectionTitle: body.ingredientSectionTitle,
     ingredientSectionText: body.ingredientSectionText,
-    pack: body.pack,
-    sizeOptions: splitList(body.sizeOptions),
+    pack,
+    sizeOptions: packOptions,
     tags: splitList(body.tags),
     images: splitList(body.images || body.imageLinks),
     ingredients: parseIngredients(body.ingredients),

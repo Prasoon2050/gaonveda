@@ -65,6 +65,16 @@ export { getHydratedCart, findProductsBySlug };
 
 // ─── Route Handlers ────────────────────────────────────────────────
 
+function normalizedCartSize(value, product) {
+  return String(value || product?.pack || "").trim();
+}
+
+function cartItemMatches(cartItem, productSlug, selectedSize, product) {
+  if (cartItem.productSlug !== productSlug) return false;
+  if (!selectedSize) return true;
+  return normalizedCartSize(cartItem.selectedSize, product) === selectedSize;
+}
+
 /**
  * GET /api/cart
  */
@@ -89,19 +99,26 @@ export async function addCartItem(req, res, next) {
       throw AppError.notFound("Product not found");
     }
 
-    const item = req.user.cart.find(
-      (cartItem) => cartItem.productSlug === productSlug && cartItem.selectedSize === selectedSize,
-    );
+    const normalizedSize = normalizedCartSize(selectedSize, product);
+    const matchingItems = req.user.cart.filter((cartItem) => cartItemMatches(cartItem, productSlug, normalizedSize, product));
     const unitPrice = product.cartUnitPrice || product.salePrice || product.price;
 
-    if (item) {
-      item.quantity += quantity;
-      item.unitPrice = unitPrice;
+    if (matchingItems.length) {
+      const existingQuantity = matchingItems.reduce((sum, cartItem) => sum + Number(cartItem.quantity || 0), 0);
+      const existingSize = matchingItems[0].selectedSize || normalizedSize;
+
+      req.user.cart = req.user.cart.filter((cartItem) => !cartItemMatches(cartItem, productSlug, normalizedSize, product));
+      req.user.cart.push({
+        productSlug,
+        quantity: existingQuantity + quantity,
+        selectedSize: existingSize,
+        unitPrice,
+      });
     } else {
       req.user.cart.push({
         productSlug,
         quantity,
-        selectedSize: selectedSize || product.pack,
+        selectedSize: normalizedSize,
         unitPrice,
       });
     }
@@ -119,7 +136,8 @@ export async function addCartItem(req, res, next) {
 export async function updateCartItem(req, res, next) {
   try {
     const quantity = Math.max(Number(req.body.quantity || 1), 1);
-    const item = req.user.cart.find((cartItem) => cartItem.productSlug === req.params.slug);
+    const selectedSize = req.body.selectedSize ? String(req.body.selectedSize).trim() : "";
+    const item = req.user.cart.find((cartItem) => cartItemMatches(cartItem, req.params.slug, selectedSize));
 
     if (!item) {
       throw AppError.notFound("Cart item not found");
@@ -138,7 +156,8 @@ export async function updateCartItem(req, res, next) {
  */
 export async function removeCartItem(req, res, next) {
   try {
-    req.user.cart = req.user.cart.filter((item) => item.productSlug !== req.params.slug);
+    const selectedSize = req.query.selectedSize ? String(req.query.selectedSize).trim() : "";
+    req.user.cart = req.user.cart.filter((item) => !cartItemMatches(item, req.params.slug, selectedSize));
     await req.user.save();
     res.json(await getHydratedCart(req.user));
   } catch (error) {

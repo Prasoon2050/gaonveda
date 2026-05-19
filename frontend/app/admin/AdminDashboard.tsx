@@ -111,6 +111,45 @@ function ImageLinkFields({ initialLinks = [] }: { initialLinks?: string[] }) {
   );
 }
 
+function PackSizeFields({ initialSizes = [] }: { initialSizes?: string[] }) {
+  const [sizes, setSizes] = useState(initialSizes.length ? initialSizes : [""]);
+
+  function updateSize(index: number, value: string) {
+    setSizes((current) => current.map((size, currentIndex) => (currentIndex === index ? value : size)));
+  }
+
+  function addSize() {
+    setSizes((current) => [...current, ""]);
+  }
+
+  function removeSize(index: number) {
+    setSizes((current) => (current.length === 1 ? [""] : current.filter((_, currentIndex) => currentIndex !== index)));
+  }
+
+  return (
+    <div className="admin-pack-size-fields" style={{ display: "grid", gap: "10px" }}>
+      {sizes.map((size, index) => (
+        <div className="admin-pack-size-row" key={`${index}-${sizes.length}`} style={{ display: "flex", gap: "8px" }}>
+          <input
+            className="premium-input"
+            name="sizeOptions"
+            value={size}
+            onChange={(event) => updateSize(index, event.target.value)}
+            placeholder={index === 0 ? "e.g. 400g Jar" : "e.g. 800g Jar"}
+            aria-label={`Pack size option ${index + 1}`}
+          />
+          <button type="button" className="premium-button premium-button-secondary" style={{ padding: "0 12px", borderRadius: "8px" }} onClick={() => removeSize(index)} aria-label="Remove pack size">
+            <Icon name="close" />
+          </button>
+        </div>
+      ))}
+      <button type="button" className="premium-button premium-button-secondary" style={{ width: "fit-content", padding: "8px 16px", fontSize: "13px" }} onClick={addSize}>
+        <Icon name="add" /> Add Pack Size
+      </button>
+    </div>
+  );
+}
+
 export function AdminDashboard({ summary, ordersData, productsData, adminName }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [orders, setOrders] = useState<Order[]>(ordersData.items);
@@ -173,6 +212,7 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
         price: formNumber(formData.get("price")),
         salePrice: optionalFormNumber(formData.get("salePrice")),
         pack: formText(formData.get("pack")),
+        sizeOptions: formData.getAll("sizeOptions"),
         stockQuantity: formNumber(formData.get("stockQuantity")),
         lowStockThreshold: formNumber(formData.get("lowStockThreshold")),
         imageLinks: formImageLinks(formData),
@@ -203,6 +243,7 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
         price: formNumber(formData.get("price")),
         salePrice: optionalFormNumber(formData.get("salePrice")),
         pack: formText(formData.get("pack")),
+        sizeOptions: formData.getAll("sizeOptions"),
         stockQuantity: formNumber(formData.get("stockQuantity")),
         lowStockThreshold: formNumber(formData.get("lowStockThreshold")),
         imageLinks: formImageLinks(formData),
@@ -520,7 +561,7 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
                     <input className="premium-input" name="badge" placeholder="e.g. Sun-dried, Cold-pressed" />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Pack Size</label>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Default Pack Size</label>
                     <input className="premium-input" name="pack" placeholder="e.g. 500ml Glass Bottle" />
                   </div>
                   <div>
@@ -554,6 +595,10 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
                   <div style={{ gridColumn: "1 / -1" }}>
                     <label style={{ display: "block", fontSize: "13px", fontWeight: "700", marginBottom: "6px", color: "var(--on-surface-variant)" }}>Health Benefits</label>
                     <textarea className="premium-input" name="benefits" rows={3} placeholder="Put one benefit per line..." />
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <span className="admin-field-label" style={{ display: "block", marginBottom: "8px", color: "var(--on-surface-variant)" }}>Pack Size Options</span>
+                    <PackSizeFields />
                   </div>
                   <div style={{ gridColumn: "1 / -1" }}>
                     <span className="admin-field-label" style={{ display: "block", marginBottom: "8px", color: "var(--on-surface-variant)" }}>Product Images</span>
@@ -617,7 +662,7 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
                         <input className="premium-input" name="badge" defaultValue={product.badge || ""} />
                       </div>
                       <div>
-                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Pack Size</label>
+                        <label style={{ display: "block", fontSize: "12px", color: "var(--on-surface-variant)", marginBottom: "4px", fontWeight: "700" }}>Default Pack Size</label>
                         <input className="premium-input" name="pack" defaultValue={product.pack || ""} />
                       </div>
                       <div>
@@ -647,6 +692,11 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
                           <option value="false">Hidden</option>
                         </select>
                       </div>
+                    </div>
+
+                    <div style={{ marginTop: "12px" }}>
+                      <span className="admin-field-label" style={{ display: "block", marginBottom: "8px" }}>Pack Size Options</span>
+                      <PackSizeFields initialSizes={product.sizeOptions?.length ? product.sizeOptions : product.pack ? [product.pack] : []} />
                     </div>
 
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px", marginTop: "12px" }}>

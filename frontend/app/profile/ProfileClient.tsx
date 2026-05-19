@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AddressForm from "./AddressForm";
-import { updateUserProfile } from "../../lib/client-api";
+import { cancelUserOrder, updateUserProfile } from "../../lib/client-api";
 import type { ProfileResponse } from "../../lib/types";
 
 interface ProfileClientProps {
@@ -19,6 +19,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
   const [phone, setPhone] = useState(profile.user.phone || "");
   const [phoneEditable, setPhoneEditable] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
   const router = useRouter();
 
   const defaultAddress = profile.user.addresses?.find((addr) => addr.isDefault) || profile.user.addresses?.[0];
@@ -57,10 +58,32 @@ export function ProfileClient({ profile }: ProfileClientProps) {
     }
   };
 
+  const canCancelOrder = (status: string) => ["placed", "confirmed"].includes(status.toLowerCase());
+  const isCancelledOrder = (status: string) => status.toLowerCase() === "cancelled";
+  const isDeliveredOrder = (status: string) => status.toLowerCase() === "delivered";
+  const canTrackOrder = (status: string) => !isCancelledOrder(status) && !isDeliveredOrder(status);
+
+  const handleCancelOrder = async (orderId: string) => {
+    const confirmed = window.confirm("Cancel this order?");
+    if (!confirmed) return;
+
+    setCancellingOrderId(orderId);
+    try {
+      await cancelUserOrder(orderId);
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Failed to cancel order");
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     const s = status.toUpperCase();
     if (s.includes("DELIVERED")) return { bg: "rgba(18, 53, 31, 0.08)", text: "var(--heritage-forest)" };
     if (s.includes("PROCESSING") || s.includes("SHIPPED")) return { bg: "rgba(189, 131, 33, 0.08)", text: "var(--heritage-gold)" };
+    if (s.includes("CANCELLED")) return { bg: "rgba(143, 54, 35, 0.08)", text: "var(--heritage-clay)" };
     return { bg: "rgba(91, 75, 48, 0.08)", text: "var(--on-surface-variant)" };
   };
 
@@ -249,9 +272,26 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                     </p>
                     <div className="order-card-footer">
                       <span>Total: <strong>{profile.recentOrders[0].totalLabel || `₹${profile.recentOrders[0].total}`}</strong></span>
-                      <Link href="/products" className="order-action-btn">
-                        Order Again
-                      </Link>
+                      <div className="order-card-actions">
+                        {canCancelOrder(profile.recentOrders[0].status) ? (
+                          <button
+                            className="cancel-order-btn compact"
+                            type="button"
+                            disabled={cancellingOrderId === profile.recentOrders[0]._id}
+                            onClick={() => handleCancelOrder(profile.recentOrders[0]._id)}
+                          >
+                            {cancellingOrderId === profile.recentOrders[0]._id ? "Cancelling..." : "Cancel Order"}
+                          </button>
+                        ) : null}
+                        <Link href="/products" className="order-action-btn">
+                          Order Again
+                        </Link>
+                        {isDeliveredOrder(profile.recentOrders[0].status) ? (
+                          <button className="return-order-btn compact" type="button">
+                            Return Order
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -311,9 +351,26 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                     <div className="history-card-footer">
                       <span className="price-label">Order Total: <strong className="text-gold">{order.totalLabel || `₹${order.total}`}</strong></span>
                       <div className="history-card-actions">
-                        <button className="secondary-action-btn">
-                          Track Package
-                        </button>
+                        {canCancelOrder(order.status) ? (
+                          <button
+                            className="cancel-order-btn"
+                            type="button"
+                            disabled={cancellingOrderId === order._id}
+                            onClick={() => handleCancelOrder(order._id)}
+                          >
+                            {cancellingOrderId === order._id ? "Cancelling..." : "Cancel Order"}
+                          </button>
+                        ) : null}
+                        {canTrackOrder(order.status) ? (
+                          <button className="secondary-action-btn" type="button">
+                            Track Package
+                          </button>
+                        ) : null}
+                        {isDeliveredOrder(order.status) ? (
+                          <button className="return-order-btn" type="button">
+                            Return Order
+                          </button>
+                        ) : null}
                         <Link href="/products" className="primary-action-btn">
                           Order Again
                         </Link>
