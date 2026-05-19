@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { signup, login, me } from "../controllers/auth.controller.js";
-import { attachUser } from "../middleware/auth.js";
+import { attachUser, requireAuth } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
 
 const router = Router();
@@ -24,6 +24,6 @@ router.post(
   login,
 );
 
-router.get("/me", attachUser, me);
+router.get("/me", attachUser, requireAuth, me);
 
 export default router;
