@@ -13,9 +13,11 @@ type AddToCartButtonProps = {
   children?: ReactNode;
   iconOnly?: boolean;
   ariaLabel?: string;
+  disabled?: boolean;
+  disabledLabel?: string;
 };
 
-export function AddToCartButton({ productSlug, selectedSize, quantity = 1, className, children, iconOnly, ariaLabel }: AddToCartButtonProps) {
+export function AddToCartButton({ productSlug, selectedSize, quantity = 1, className, children, iconOnly, ariaLabel, disabled, disabledLabel = "Out of stock" }: AddToCartButtonProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [added, setAdded] = useState(false);
@@ -36,11 +38,11 @@ export function AddToCartButton({ productSlug, selectedSize, quantity = 1, class
   }
 
   return (
-    <button className={className} type="button" onClick={handleClick} disabled={pending} aria-live="polite" aria-label={ariaLabel}>
+    <button className={className} type="button" onClick={handleClick} disabled={pending || disabled} aria-live="polite" aria-label={ariaLabel}>
       {iconOnly ? (
-        <span className="material-symbols-outlined">{added ? "check" : "add_shopping_cart"}</span>
+        <span className="material-symbols-outlined">{disabled ? "block" : added ? "check" : "add_shopping_cart"}</span>
       ) : (
-        children || (added ? "Added" : pending ? "Adding..." : "Add to Cart")
+        disabled ? disabledLabel : children || (added ? "Added" : pending ? "Adding..." : "Add to Cart")
       )}
     </button>
   );

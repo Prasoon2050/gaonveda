@@ -26,6 +26,8 @@ export const products = [
       { icon: "grain", title: "Sea Salt", text: "Unrefined preservation" },
     ],
     benefits: ["100% Sun-Dried Naturally", "Sourced from Local Organic Farms"],
+    stockQuantity: 18,
+    lowStockThreshold: 6,
     sortOrder: 1,
     reviews: [
       {
@@ -58,6 +60,8 @@ export const products = [
     tags: ["Cold-Pressed", "Unrefined", "Wood Pressed"],
     ingredients: [{ icon: "water_drop", title: "Mustard Seeds", text: "Single-origin, wood pressed" }],
     benefits: ["Pressed in Wooden Ghani", "No Chemical Refining"],
+    stockQuantity: 9,
+    lowStockThreshold: 5,
     sortOrder: 2,
     reviews: [
       {
@@ -82,6 +86,8 @@ export const products = [
     tags: ["Stone-Ground", "High Fiber", "No Additives"],
     ingredients: [{ icon: "grass", title: "Heritage Grains", text: "Wheat, jowar, bajra and ragi" }],
     benefits: ["Stone-Ground in Small Batches", "Balanced Multigrain Blend"],
+    stockQuantity: 4,
+    lowStockThreshold: 5,
     sortOrder: 3,
     reviews: [
       {
@@ -106,6 +112,8 @@ export const products = [
     tags: ["Bilona Method", "Seasonal"],
     ingredients: [{ icon: "local_drink", title: "A2 Milk", text: "Cultured and hand churned" }],
     benefits: ["Small Seasonal Batches"],
+    stockQuantity: 0,
+    lowStockThreshold: 3,
     isListed: false,
     sortOrder: 4,
     reviews: [],
@@ -117,6 +125,7 @@ export const users = [
     name: "Prasoon Kumar",
     email: "prasoon@example.com",
     phone: "+91 98765 43210",
+    role: "admin",
     avatarInitials: "PK",
     loyaltyPoints: 240,
     addresses: [

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ProductImage } from "../../../components/ProductImage";
 import { getProfile, getCart, getProduct, formatPrice } from "../../../lib/api";
+import { isOutOfStock } from "../../../lib/inventory";
 import { isLoggedIn } from "../../../lib/session";
-import { productImage } from "../../../lib/images";
 import PaymentClient from "./PaymentClient";
 import { Navbar } from "../../../components/Navbar";
 
@@ -35,6 +36,7 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
   if (buyNow === "true" && productSlug) {
     const product = await getProduct(productSlug);
     if (!product) redirect("/products");
+    if (isOutOfStock(product)) redirect(`/products/${productSlug}`);
 
     const qty = Math.max(1, Number(quantity) || 1);
     const unitPrice = product.salePrice || product.price;
@@ -67,6 +69,9 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
     if (selectedSize) qs.set("selectedSize", selectedSize);
   } else {
     if (!cart.items || cart.items.length === 0) {
+      redirect("/cart");
+    }
+    if (cart.items.some((item) => isOutOfStock(item.product))) {
       redirect("/cart");
     }
     items = cart.items;
@@ -115,11 +120,15 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
             {items.map((item) => (
               <article key={`${item.productSlug}-${item.selectedSize}`} className="cart-item card-hover">
                 <div className="cart-item-image">
-                  <img src={productImage(item.productSlug)} alt={item.product?.title || item.title} />
+                  <ProductImage product={item.product} alt={item.product?.title || item.title} />
                 </div>
                 <div className="cart-item-body">
                   <div>
-                    {item.product?.badge && <span className="cart-badge">{item.product.badge}</span>}
+                    {item.product?.badge || isOutOfStock(item.product) ? (
+                      <span className={isOutOfStock(item.product) ? "cart-badge out-of-stock-label" : "cart-badge"}>
+                        {isOutOfStock(item.product) ? "Out of stock" : item.product?.badge}
+                      </span>
+                    ) : null}
                     <h2>
                       <Link href={`/products/${item.productSlug}`} style={{ textDecoration: "none", color: "inherit" }}>
                         {item.product?.title || item.title}

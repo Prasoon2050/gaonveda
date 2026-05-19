@@ -11,6 +11,7 @@ import cartRoutes from "./routes/cart.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import wishlistRoutes from "./routes/wishlist.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 import { checkout } from "./controllers/order.controller.js";
 
 const app = express();
@@ -40,6 +41,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.post("/api/checkout", attachUser, requireAuth, checkout);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api", userRoutes);             // GET /api/me, PATCH /api/me, GET /api/profile
 
 // ─── 404 Catch-all ─────────────────────────────────────────────────

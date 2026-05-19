@@ -2,8 +2,11 @@ import Link from "next/link";
 import { Footer } from "../../components/Footer";
 import { Navbar } from "../../components/Navbar";
 import { AddToCartButton } from "../../components/AddToCartButton";
-import { formatPrice, getProducts, getCart } from "../../lib/api";
-import { productHref, productImage } from "../../lib/images";
+import { ProductImage } from "../../components/ProductImage";
+import { ProductPrice } from "../../components/ProductPrice";
+import { getProducts, getCart } from "../../lib/api";
+import { productHref } from "../../lib/images";
+import { isOutOfStock, productStockLabel } from "../../lib/inventory";
 import { isLoggedIn } from "../../lib/session";
 
 export const dynamic = "force-dynamic";
@@ -71,26 +74,29 @@ export default async function ProductsPage() {
           </aside>
 
           <div className="catalog-grid">
-            {products.map((product) => (
-              <article className="catalog-card" key={product.slug}>
-                <Link className="card-cover-link" href={productHref(product.slug)} aria-label={`View ${product.title}`} />
-                <div className="catalog-card-image">
-                  <img src={productImage(product.slug)} alt={product.title} />
-                  <span>{product.badge}</span>
-                </div>
-                <div className="catalog-card-body">
-                  <h2>{product.title}</h2>
-                  <p>{product.subtitle}</p>
-                  <strong>{formatPrice(product.price)}</strong>
-                  <div>
-                    <AddToCartButton productSlug={product.slug} selectedSize={product.pack}>
-                      Add to Cart
-                    </AddToCartButton>
-                    <Link href={productHref(product.slug)}>View Details</Link>
+            {products.map((product) => {
+              const outOfStock = isOutOfStock(product);
+              return (
+                <article className="catalog-card" key={product.slug}>
+                  <Link className="card-cover-link" href={productHref(product.slug)} aria-label={`View ${product.title}`} />
+                  <div className="catalog-card-image">
+                    <ProductImage product={product} alt={product.title} />
+                    <span className={outOfStock ? "out-of-stock-label" : ""}>{productStockLabel(product) || product.badge}</span>
                   </div>
-                </div>
-              </article>
-            ))}
+                  <div className="catalog-card-body">
+                    <h2>{product.title}</h2>
+                    <p>{product.subtitle}</p>
+                    <ProductPrice product={product} />
+                    <div>
+                      <AddToCartButton productSlug={product.slug} selectedSize={product.pack} disabled={outOfStock} disabledLabel="Notify Me">
+                        Add to Cart
+                      </AddToCartButton>
+                      <Link href={productHref(product.slug)}>View Details</Link>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </section>
 

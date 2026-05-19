@@ -1,6 +1,15 @@
 import { cookies } from "next/headers";
 import { fallbackCart, fallbackProducts, fallbackProfile, fallbackReviews, fallbackWishlist } from "./fallback-data";
-import type { CartResponse, Product, ProfileResponse, ReviewsResponse, WishlistResponse } from "./types";
+import type {
+  AdminOrdersResponse,
+  AdminProductsResponse,
+  AdminSummary,
+  CartResponse,
+  Product,
+  ProfileResponse,
+  ReviewsResponse,
+  WishlistResponse,
+} from "./types";
 
 const apiBaseUrl = process.env.BACKEND_API_URL || "http://localhost:4000";
 const authCookieName = "gaon_veda_token";
@@ -28,6 +37,16 @@ async function getJson<T>(path: string, fallback: T): Promise<T> {
     console.warn(`Using fallback data for ${path}`, error);
     return fallback;
   }
+}
+
+async function getJsonStrict<T>(path: string): Promise<T> {
+  const response = await fetch(`${apiBaseUrl}${path}`, { cache: "no-store", headers: await authHeaders() });
+
+  if (!response.ok) {
+    throw new Error(`API ${path} returned ${response.status}`);
+  }
+
+  return (await response.json()) as T;
 }
 
 export function formatPrice(value?: number) {
@@ -73,4 +92,20 @@ export async function getReviews(slug: string) {
 
 export async function getProfile() {
   return getJson<ProfileResponse>("/api/profile", fallbackProfile);
+}
+
+export async function getProfileStrict() {
+  return getJsonStrict<ProfileResponse>("/api/profile");
+}
+
+export async function getAdminSummary() {
+  return getJsonStrict<AdminSummary>("/api/admin/summary");
+}
+
+export async function getAdminOrders() {
+  return getJsonStrict<AdminOrdersResponse>("/api/admin/orders");
+}
+
+export async function getAdminProducts() {
+  return getJsonStrict<AdminProductsResponse>("/api/admin/products");
 }

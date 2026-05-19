@@ -13,6 +13,8 @@ export type Product = {
   description?: string;
   storyTitle?: string;
   story?: string[];
+  ingredientSectionTitle?: string;
+  ingredientSectionText?: string;
   price: number;
   salePrice?: number;
   originalPrice?: number;
@@ -22,11 +24,16 @@ export type Product = {
   reviewCount?: number;
   sizeOptions?: string[];
   tags?: string[];
+  images?: string[];
   ingredients?: Ingredient[];
   benefits?: string[];
   reviews?: Review[];
+  stockQuantity?: number;
+  lowStockThreshold?: number;
+  stockStatus?: "healthy" | "low" | "out";
   isListed?: boolean;
   sortOrder?: number;
+  priceLabel?: string;
 };
 
 export type UserAddress = {
@@ -47,6 +54,7 @@ export type User = {
   name: string;
   email: string;
   phone?: string;
+  role?: "customer" | "admin";
   avatarInitials?: string;
   loyaltyPoints?: number;
   addresses?: UserAddress[];
@@ -121,9 +129,20 @@ export type Order = {
   orderNumber: string;
   status: string;
   paymentStatus?: string;
+  paymentMethod?: string;
   total: number;
+  subtotal?: number;
+  shipping?: number;
   totalLabel?: string;
+  subtotalLabel?: string;
+  shippingLabel?: string;
   createdAt?: string;
+  user?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  };
+  shippingAddress?: UserAddress;
   items: Array<{
     productSlug: string;
     title: string;
@@ -132,6 +151,30 @@ export type Order = {
     unitPrice: number;
     lineTotal: number;
   }>;
+};
+
+export type AdminSummary = {
+  stats: {
+    orderCount: number;
+    productCount: number;
+    customerCount: number;
+    revenue: number;
+    revenueLabel: string;
+  };
+  recentOrders: Order[];
+  lowStockProducts: Product[];
+  orderStatuses: string[];
+  paymentStatuses: string[];
+};
+
+export type AdminOrdersResponse = {
+  items: Order[];
+  orderStatuses: string[];
+  paymentStatuses: string[];
+};
+
+export type AdminProductsResponse = {
+  items: Product[];
 };
 
 export type ProfileResponse = {

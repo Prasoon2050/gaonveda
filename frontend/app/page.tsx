@@ -1,8 +1,11 @@
 import { AddToCartButton } from "../components/AddToCartButton";
 import { Footer } from "../components/Footer";
 import { Navbar } from "../components/Navbar";
-import { formatPrice, getProducts, ratingIcons, getCart } from "../lib/api";
-import { productHref, productImage } from "../lib/images";
+import { ProductImage } from "../components/ProductImage";
+import { ProductPrice } from "../components/ProductPrice";
+import { getProducts, ratingIcons, getCart } from "../lib/api";
+import { productHref } from "../lib/images";
+import { isOutOfStock, productStockLabel } from "../lib/inventory";
 import { isLoggedIn } from "../lib/session";
 
 export const dynamic = "force-dynamic";
@@ -10,15 +13,9 @@ export const dynamic = "force-dynamic";
 const images = {
   logo: "/logo.png",
   hero: "/hero.png",
-  pickle: "https://lh3.googleusercontent.com/aida-public/AB6AXuAxUK1Nn6h5eBr2QmtNlA2D-fOnFf0YDVcTx8SelWfUDnPRF-Hu88fYuF8Mg9jJjPIqXJ4KtOMcozwG3AMlv9-jtDgXENjph3WUHht13BYk0dnWH6xnceYgoJcU-CzagmpUW1XPmyaLV4rI2bCE43pItqRi2JMF9anJoBxhwNVuH2D7rotwAEt15pwPKK96x8KxJ6hTAgL-3BupgLIgqdQdq1K9tIXRW4n_FO8vid_BoHv1NH7Ie12d4-lf9ouxoQec-XIzpUebBSjl",
-  oil: "https://lh3.googleusercontent.com/aida-public/AB6AXuA0aUYiofJPKC66txBS4OPkws27BF8O_kSoNGYzSI3qNjWwbPpQqy2RECRdQmVgUQ_N5eKx_0DuqajnkdXmCp0npbmToRuh5ax7sSCnnsnqqlriUhtfOGDdOIQE0xVS-cRLB3VfA56b9oMuUbMoGwXmhV1lkYmXWnkmakEdvxhjWvtg3VChoNoBwZJa1SzE3Rt-5In4cbUdm9Kt1zgj42GW5cnz0PBdXbQC6QRcLDNcLM_w7yf2pfC3z44TsyhQ42E7xCK6PfQiUcRC",
-  atta: "https://lh3.googleusercontent.com/aida-public/AB6AXuCi4qYUOWUqkhN3Yo0_Yu91Pqkk078NbW34fvmcIzL0IGsLjN819rNT0TUWnxxb_dHWyFwe5TsJsxa718VeQ5RWBHy9Q-sxLARe98EWyJ87bjejoa4961Ofr6u4L1L0FvnUBunYbdlk-u2CefFnROHwTtmDEDyO3v_QgrZF_umajOeP0JqpBEq-ENhlHhuOdRZBuM-Tkn7FbLT96KOE86iye8uhjyqW8vkh4nDYh8_TkgKc1A4s7tCPL6m7AVOzrh4YYx2e_GXRGXo9",
   farmerHands: "https://lh3.googleusercontent.com/aida-public/AB6AXuAh8uxiiJU_HuQvP-c_oreyqev1r8TzHvn6qbbMTaGsbPyu_KAhb1geyKvlTaPR4fQri_DOM0bcSO1IeuFuawSAbSoD3uf8suHqsPFymPToLCOCqYgeEZ6fVVGV944YC04UX0QF6QaEN_32qpHUN1t9OAPqs7aO008WPGvB57BBzqksE_tpURN0EQ3XoO7NvQJpUKI1f6AR5FOTWPakl2smQo9FMZlrXjQs6zbLjn9djlogzk-u9vGEqYGkQrV9H5nQ_P4CCZnRcLlS",
   farmer: "https://lh3.googleusercontent.com/aida-public/AB6AXuCBHCUkeA6KG4progkCWEBV2n7FmXqu5jXshJt6AQhIA4vcn7ApyLD9sEKV0xKfVCnXUbAt-QJ25fsACPmd_Sv-2_nSCbmZb5HjO43uki0p4azIuxvug5dNoFFNKv9MnC0FJbXCJthijC4qcn3Q8OF3bTpIVBDOqNGeTr7aQPrEEdZMHEs0oHYeIPgZNR9QI_KlmpbvFM_-jGsPVXl41LylLBb359qPWv5zU1g15JDNICG-pGItxgwk9tfUITo2TUS1YkhcQ38LQzel",
   artisan: "https://lh3.googleusercontent.com/aida-public/AB6AXuCKmOtLmDP9-KN9D2rj0UK3ABtSJyxodq2bx5SZaxLTVW1TxzGg_RAdZulSQczV6hORhT0fuNaGKoadVVavc2gAi2fduFk-q96sf5pHT6PTgVPsRyV3m7tkU_j8nTXENHPPo6_ol6TUYbRGwpyxBjLt3q9YffdPNAe5WvcjmoZigqDoN9gNeADNg-HW5-nzOwvCMKZ7SSoa_AgmuT-4-zzy9E3t97Gw659UbDdbNeOcvzqWCsO0Kp6qhkAVECnJOee0TfCX8lS8Qilm",
-  ghee: "https://lh3.googleusercontent.com/aida-public/AB6AXuAaLUAA-5mi8a6e7jrY0r9FbUrmvihGyoHE4nsMbVDhSy2rnoaS3oafavw2ZYSbAGLJp2QLfHBZwWbwph5Xp9c4yAi818zqLYr3YY6fHrocqS4eP_zQLWmpum4cmmh0eZYjoTmW4_up8tdCiJsDz--GWHjxnlWWItfOyRrCfiVpbINlwLD-Hvj9DwJlc6GWhBVXN2KxNnek1FldHq43SII9IDqhxbo6fJhAlJWAtgt8Q2s7644TLkiILZRo1adoCrCRyuJlARkGerkn",
-  honey: "https://lh3.googleusercontent.com/aida-public/AB6AXuDjEwhfozDMMpXnp6oiOpy8q7GVxXHt-6nGCjbVuWqGmVnk_IM_fcXRaQzVbz1BU4VBr3q3H1n-mj6rxEd5z_rX9DulvBIeyO3F3LgLIYCxtKrHPtKsdnx1OrGyG-4WHgqUpOdVGmI7X3RWThzT0dHBF8K5dYZ9F7U4IYbucekqcUBvWHPBu7lqOGQ9v_dXnxHVHss-EHcHzaHVGONaO082a4eVba5waXCDSKe1NVjsNLa9hcMqWmVjxK9MoXatu8XepCHqx1SeHPrj",
-  spices: "https://lh3.googleusercontent.com/aida-public/AB6AXuAUtRSoc1dwCIG1Mkjz0M6XwFWKORo94OIdiTXaiWxeVL4I8MluuAUEeEWbv2crzXAj976_nYG5rwV-biHzwXLauCm9R306Eo9D_IxytAx164P3hvlJElsxlPO1QbWEYNf7BAXe5Q6h98vFwwPwHtDR05PfqIJPW0E_CynQFKooDQCHwLZdJjojN74ZTICCuFnIfbJu48IcVRvipftMJ5ZbvUShE7iwDszj-HspG_9axgw-V-tuPDDNwSyQQ_scGB2PZPbsGNkuF2gQ",
 };
 
 const features = [
@@ -157,34 +154,37 @@ export default async function Home() {
               </a>
             </div>
             <div className="product-grid">
-              {products.map((product, index) => (
-                <article className="product-card reveal" key={product.slug} style={{ animationDelay: `${index * 120}ms` }}>
-                  <a className="card-cover-link" href={productHref(product.slug)} aria-label={`View ${product.title}`} />
-                  <div className="product-image">
-                    <span>{product.badge}</span>
-                    <img src={productImage(product.slug)} alt={product.title} />
-                  </div>
-                  <div className="product-body">
-                    <div className="rating">
-                      <div>
-                        {ratingIcons(product.rating).map((star, index) => (
-                          <Icon key={`${star}-${index}`} name={star} fill={star !== "star_outline"} />
-                        ))}
-                      </div>
-                      <span>({product.reviewCount})</span>
+              {products.map((product, index) => {
+                const outOfStock = isOutOfStock(product);
+                return (
+                  <article className="product-card reveal" key={product.slug} style={{ animationDelay: `${index * 120}ms` }}>
+                    <a className="card-cover-link" href={productHref(product.slug)} aria-label={`View ${product.title}`} />
+                    <div className="product-image">
+                      <span className={outOfStock ? "out-of-stock-label" : ""}>{productStockLabel(product) || product.badge}</span>
+                      <ProductImage product={product} alt={product.title} />
                     </div>
-                    <h3>{product.title}</h3>
-                    <p>{product.description}</p>
-                    <div className="product-footer">
-                      <div>
-                        <span>{product.pack}</span>
-                        <strong>{formatPrice(product.price)}</strong>
+                    <div className="product-body">
+                      <div className="rating">
+                        <div>
+                          {ratingIcons(product.rating).map((star, index) => (
+                            <Icon key={`${star}-${index}`} name={star} fill={star !== "star_outline"} />
+                          ))}
+                        </div>
+                        <span>({product.reviewCount})</span>
                       </div>
-                      <AddToCartButton productSlug={product.slug} selectedSize={product.pack} iconOnly ariaLabel={`Add ${product.title} to cart`} />
+                      <h3>{product.title}</h3>
+                      <p>{product.description}</p>
+                      <div className="product-footer">
+                        <div>
+                          <span>{product.pack}</span>
+                          <ProductPrice product={product} />
+                        </div>
+                        <AddToCartButton productSlug={product.slug} selectedSize={product.pack} iconOnly ariaLabel={`Add ${product.title} to cart`} disabled={outOfStock} />
+                      </div>
                     </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -283,12 +283,12 @@ export default async function Home() {
             </div>
             <div className="preview-grid">
               {[
-                [images.ghee, "A2 Ghee"],
-                [images.honey, "Wild Honey"],
-                [images.spices, "Pure Spices"],
-              ].map(([image, label], index) => (
+                ["local_drink", "A2 Ghee"],
+                ["hive", "Wild Honey"],
+                ["grain", "Pure Spices"],
+              ].map(([icon, label], index) => (
                 <figure className={index === 1 ? "preview-card lowered" : "preview-card"} key={label}>
-                  <img src={image} alt={`${label} preview`} />
+                  <span className="preview-placeholder"><Icon name={icon} /></span>
                   <figcaption>{label}</figcaption>
                 </figure>
               ))}

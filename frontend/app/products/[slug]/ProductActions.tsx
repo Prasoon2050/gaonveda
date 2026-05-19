@@ -9,13 +9,14 @@ type ProductActionsProps = {
   productTitle: string;
   sizeOptions: string[];
   defaultWishlisted: boolean;
+  outOfStock?: boolean;
 };
 
 function Icon({ name, fill = false }: { name: string; fill?: boolean }) {
   return <span className={`material-symbols-outlined${fill ? " fill" : ""}`}>{name}</span>;
 }
 
-export function ProductActions({ productSlug, productTitle, sizeOptions, defaultWishlisted }: ProductActionsProps) {
+export function ProductActions({ productSlug, productTitle, sizeOptions, defaultWishlisted, outOfStock }: ProductActionsProps) {
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState(sizeOptions[0]);
@@ -57,36 +58,44 @@ export function ProductActions({ productSlug, productTitle, sizeOptions, default
             <Icon name="add" />
           </button>
         </div>
-        <button
-          type="button"
-          className="premium-button"
-          onClick={() =>
-            run("cart", async () => {
-              await addCartItem({ productSlug, selectedSize, quantity });
-              setMessage(`${productTitle} added to cart.`);
-              router.refresh();
-            })
-          }
-          disabled={pending !== null}
-        >
-          {pending === "cart" ? "Adding..." : "Add to Cart"}
-        </button>
+        {outOfStock ? (
+          <button type="button" className="premium-button" disabled>
+            Notify Me
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="premium-button"
+            onClick={() =>
+              run("cart", async () => {
+                await addCartItem({ productSlug, selectedSize, quantity });
+                setMessage(`${productTitle} added to cart.`);
+                router.refresh();
+              })
+            }
+            disabled={pending !== null}
+          >
+            {pending === "cart" ? "Adding..." : "Add to Cart"}
+          </button>
+        )}
       </div>
 
       <div className="pdp-secondary-actions">
-        <button
-          className="pdp-buy premium-button premium-button-secondary"
-          type="button"
-          onClick={() =>
-            run("buy", async () => {
-              const qs = new URLSearchParams({ buyNow: "true", productSlug, quantity: String(quantity), selectedSize }).toString();
-              router.push(`/checkout?${qs}`);
-            })
-          }
-          disabled={pending !== null}
-        >
-          {pending === "buy" ? "Placing Order..." : "Buy Now"}
-        </button>
+        {!outOfStock ? (
+          <button
+            className="pdp-buy premium-button premium-button-secondary"
+            type="button"
+            onClick={() =>
+              run("buy", async () => {
+                const qs = new URLSearchParams({ buyNow: "true", productSlug, quantity: String(quantity), selectedSize }).toString();
+                router.push(`/checkout?${qs}`);
+              })
+            }
+            disabled={pending !== null}
+          >
+            {pending === "buy" ? "Placing Order..." : "Buy Now"}
+          </button>
+        ) : null}
         <button
           className={wishlisted ? "pdp-wishlist active" : "pdp-wishlist"}
           type="button"

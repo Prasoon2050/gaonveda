@@ -10,6 +10,14 @@ const shippingFee = Number(process.env.SHIPPING_FEE || 80);
 
 async function createOrderFromItems(user, items, paymentMethod = "Cash on Delivery") {
   const productMap = await findProductsBySlug(items.map((item) => item.productSlug));
+  const outOfStockProduct = items
+    .map((item) => productMap.get(item.productSlug))
+    .find((product) => product && Number(product.stockQuantity || 0) <= 0);
+
+  if (outOfStockProduct) {
+    throw AppError.badRequest(`${outOfStockProduct.title} is out of stock`);
+  }
+
   const orderItems = items
     .map((item) => {
       const product = productMap.get(item.productSlug);

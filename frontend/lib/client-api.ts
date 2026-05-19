@@ -84,3 +84,24 @@ export function updateUserProfile(body: JsonBody) {
     body: JSON.stringify(body),
   });
 }
+
+export function updateAdminOrder(orderId: string, body: JsonBody) {
+  return apiRequest(`/api/admin/orders/${orderId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function createAdminProduct(body: JsonBody) {
+  return apiRequest("/api/admin/products", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateAdminProduct(productSlug: string, body: JsonBody) {
+  return apiRequest(`/api/admin/products/${productSlug}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}

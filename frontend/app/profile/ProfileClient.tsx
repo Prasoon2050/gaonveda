@@ -79,6 +79,12 @@ export function ProfileClient({ profile }: ProfileClientProps) {
         </div>
 
         <nav className="sidebar-nav">
+          {profile.user.role === "admin" ? (
+            <Link className="nav-item" href="/admin">
+              <span className="material-symbols-outlined">admin_panel_settings</span>
+              Admin Dashboard
+            </Link>
+          ) : null}
           <button 
             className={`nav-item ${activeTab === "dashboard" ? "active" : ""}`}
             onClick={() => setActiveTab("dashboard")}

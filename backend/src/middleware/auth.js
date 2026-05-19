@@ -32,6 +32,7 @@ export async function attachUser(req, _res, next) {
       const user = await User.findById(tokenPayload.sub);
       if (user) {
         req.user = user;
+        req.authenticatedWithToken = true;
         return next();
       }
     }
@@ -74,5 +75,21 @@ export function requireAuth(req, _res, next) {
   if (!req.user) {
     return next(AppError.unauthorized("Authentication required"));
   }
+  next();
+}
+
+/**
+ * Middleware that restricts access to signed-in admin users.
+ * Must be used AFTER `attachUser`.
+ */
+export function requireAdmin(req, _res, next) {
+  if (!req.user || !req.authenticatedWithToken) {
+    return next(AppError.unauthorized("Admin authentication required"));
+  }
+
+  if (req.user.role !== "admin") {
+    return next(AppError.forbidden("Admin access required"));
+  }
+
   next();
 }

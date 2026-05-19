@@ -2,8 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Footer } from "../../components/Footer";
 import { Navbar } from "../../components/Navbar";
-import { formatPrice, getWishlist, getCart } from "../../lib/api";
-import { productHref, productImage } from "../../lib/images";
+import { ProductImage } from "../../components/ProductImage";
+import { ProductPrice } from "../../components/ProductPrice";
+import { getWishlist, getCart } from "../../lib/api";
+import { productHref } from "../../lib/images";
+import { isOutOfStock } from "../../lib/inventory";
 import { isLoggedIn } from "../../lib/session";
 import { RemoveWishlistButton, WishlistAddToCartButton } from "./WishlistActions";
 
@@ -52,14 +55,17 @@ export default async function WishlistPage() {
           {visibleItems.map((item) => {
             const product = item.product!;
             const state = stateClass(item.status);
+            const outOfStock = isOutOfStock(product);
 
             return (
               <article className={`wishlist-card wishlist-card-${state}`} key={item.productSlug}>
                 <Link className="card-cover-link" href={productHref(product.slug)} aria-label={`View ${product.title}`} />
                 <div className="wishlist-image">
-                  {state === "placeholder" ? <Icon name="image" /> : <img src={productImage(product.slug)} alt={product.title} />}
+                  {state === "placeholder" ? <Icon name="image" /> : <ProductImage product={product} alt={product.title} />}
                   <RemoveWishlistButton productSlug={product.slug} label={product.title} />
-                  {state === "disabled" ? (
+                  {outOfStock ? (
+                    <span className="stock-tag out-of-stock-label">Out of stock</span>
+                  ) : state === "disabled" ? (
                     <div className="season-overlay">
                       <span>{item.status}</span>
                     </div>
@@ -71,8 +77,8 @@ export default async function WishlistPage() {
                   <h2>{product.title}</h2>
                   <p>{product.subtitle || product.description}</p>
                   <div>
-                    <strong>{formatPrice(product.price)}</strong>
-                    <WishlistAddToCartButton productSlug={product.slug} disabled={state === "disabled"} label={item.actionLabel} />
+                    <ProductPrice product={product} />
+                    <WishlistAddToCartButton productSlug={product.slug} disabled={state === "disabled" || outOfStock} label={outOfStock ? "Out of stock" : item.actionLabel} />
                   </div>
                 </div>
               </article>
@@ -84,4 +90,3 @@ export default async function WishlistPage() {
     </div>
   );
 }
-

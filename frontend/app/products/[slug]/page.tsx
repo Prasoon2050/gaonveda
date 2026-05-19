@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { formatPrice, getCart, getProduct, getReviews, getWishlist, ratingIcons } from "../../../lib/api";
-import { productImage } from "../../../lib/images";
+import { ProductPrice } from "../../../components/ProductPrice";
+import { getCart, getProduct, getReviews, getWishlist, ratingIcons } from "../../../lib/api";
+import { productImage, productImages } from "../../../lib/images";
+import { isOutOfStock } from "../../../lib/inventory";
 import { isLoggedIn } from "../../../lib/session";
 import { ProductActions } from "./ProductActions";
 import { ReviewForm } from "./ReviewForm";
@@ -9,11 +11,6 @@ import { Footer } from "../../../components/Footer";
 import { Navbar } from "../../../components/Navbar";
 
 export const dynamic = "force-dynamic";
-
-const secondaryThumbnails = [
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuCixoYvj2fduVekXKyGFpSUNlSgXkObfPB0pLfrd3rzbrSKDzNyCbGT9D15zZkXsnnkVkTFDwoXyCFI5xIQoRDsugQNl0MGcQlJwc4LQxwHHY4ga3xN4fj1LYr_vlj5HMb3wARWpTlpy9d_u3qP5PGcbBS_CbB_g3h-Q6s1X1ykdams00LXDBSTDNbTVc1GgcuxUkDwJVk_MThppsAba_EkrjyIQymYjkqdYH-7rugSjJiLaGaaiemf1AdbsYm456e2C2FA-bXUFClf",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBiAMzu6Uy0Es5OiJxnUG7M4XnCp7ix0FU5Zz03dHKgE4-aQBrlv1h98D0IllcBSrdWAOM7xnMZWcd8ls0FOjQ1KaBA1fUVmg3uFyRoGYtwU291GlP7lNdVpmg0BFVTrvXkVF8w1fHSzWzH0nHz0Zd55rewYWsIpU1sP6hdX0F-Epdzl8UsuT7SqQauGhypSZalWUt1hAG2ngMd0okPYIn2cQnsmyinvi5ZH9AS4DQXCHyyxyK4h3SMyAl1aLiEkFKXHXzrfHz2jQvf",
-];
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
@@ -26,11 +23,8 @@ function Icon({ name, fill = false }: { name: string; fill?: boolean }) {
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
   const [product, cart, wishlist, reviews, loggedIn] = await Promise.all([getProduct(slug), getCart(), getWishlist(), getReviews(slug), isLoggedIn()]);
-  const mainImage = productImage(product.slug);
-  const thumbnails = Array.from(new Set([mainImage, ...secondaryThumbnails]));
-  const activePrice = product.salePrice || product.price;
-  const savings =
-    product.originalPrice && activePrice ? Math.round(((product.originalPrice - activePrice) / product.originalPrice) * 100) : 0;
+  const mainImage = productImage(product);
+  const thumbnails = Array.from(new Set(productImages(product)));
   const story = product.story?.length ? product.story : [product.description || product.subtitle || "Prepared in careful small batches."];
   const ingredients = product.ingredients?.length
     ? product.ingredients
@@ -38,6 +32,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const tags = product.tags?.length ? product.tags : [product.category, product.pack].filter(Boolean);
   const sizeOptions = (product.sizeOptions || [product.pack]).filter(Boolean) as string[];
   const isWishlisted = wishlist.items.some((item) => item.productSlug === product.slug);
+  const outOfStock = isOutOfStock(product);
 
   return (
     <div className="pdp-page">
@@ -72,21 +67,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 {product.rating || 0}/5 ({product.reviewCount || 0} reviews)
               </span>
             </div>
-            <div className="pdp-price">
-              <strong>{formatPrice(activePrice)}</strong>
-              {product.originalPrice ? <span>{formatPrice(product.originalPrice)}</span> : null}
-              {savings > 0 ? <em>Save {savings}%</em> : null}
-            </div>
+            <ProductPrice product={product} className="pdp-price" />
             <div className="pdp-description">
               <h2>Product Description</h2>
               <p>{product.description}</p>
             </div>
+            {outOfStock ? <p className="pdp-stock-message">Out of stock</p> : null}
 
             <ProductActions
               productSlug={product.slug}
               productTitle={product.title}
               sizeOptions={sizeOptions}
               defaultWishlisted={isWishlisted}
+              outOfStock={outOfStock}
             />
             <div className="pdp-shipping">
               <Icon name="local_shipping" />
@@ -116,8 +109,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <section className="pdp-ingredients">
           <header>
-            <h2>Pure Ingredients, Honest Flavor</h2>
-            <p>We believe in complete transparency. Every pack contains only what nature provides, blended with care.</p>
+            <h2>{product.ingredientSectionTitle || "Pure Ingredients, Honest Flavor"}</h2>
+            <p>{product.ingredientSectionText || "We believe in complete transparency. Every pack contains only what nature provides, blended with care."}</p>
           </header>
           <div className="pdp-ingredient-grid">
             {ingredients.map((ingredient) => (

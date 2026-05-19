@@ -2,8 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Footer } from "../../components/Footer";
 import { Navbar } from "../../components/Navbar";
+import { ProductImage } from "../../components/ProductImage";
 import { getCart } from "../../lib/api";
-import { productImage } from "../../lib/images";
+import { isOutOfStock } from "../../lib/inventory";
 import { isLoggedIn } from "../../lib/session";
 import { CartItemControls, CheckoutButton, RemoveCartItemButton } from "./CartItemControls";
 
@@ -20,6 +21,7 @@ export default async function CartPage() {
   }
   const cart = await getCart();
   const isEmpty = !cart.items || cart.items.length === 0;
+  const outOfStockItem = cart.items.find((item) => isOutOfStock(item.product));
 
   return (
     <div className="commerce-page cart-page">
@@ -57,11 +59,11 @@ export default async function CartPage() {
                   <article className="cart-item card-hover" key={item.productSlug}>
                     <RemoveCartItemButton productSlug={item.productSlug} label={item.product.title} />
                     <div className="cart-item-image">
-                      <img src={productImage(item.product.slug)} alt={item.product.title} />
+                      <ProductImage product={item.product} alt={item.product.title} />
                     </div>
                     <div className="cart-item-body">
                       <div>
-                        <span className="cart-badge">{item.product.badge}</span>
+                        <span className={isOutOfStock(item.product) ? "cart-badge out-of-stock-label" : "cart-badge"}>{isOutOfStock(item.product) ? "Out of stock" : item.product.badge}</span>
                         <h2>{item.product.title}</h2>
                         <p>{item.product.description}</p>
                       </div>
@@ -95,7 +97,10 @@ export default async function CartPage() {
                 <span>Total</span>
                 <strong>{cart.totals.totalLabel}</strong>
               </div>
-              <CheckoutButton />
+              <CheckoutButton
+                disabled={Boolean(outOfStockItem)}
+                message={outOfStockItem ? `${outOfStockItem.product?.title || outOfStockItem.productSlug} is out of stock. Remove it before checkout.` : undefined}
+              />
               <p className="secure-checkout">
                 <Icon name="lock" /> Secure Checkout
               </p>

@@ -59,7 +59,7 @@ export function RemoveCartItemButton({ productSlug, label }: { productSlug: stri
   );
 }
 
-export function CheckoutButton() {
+export function CheckoutButton({ disabled, message }: { disabled?: boolean; message?: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
@@ -69,8 +69,11 @@ export function CheckoutButton() {
   }
 
   return (
-    <button className="premium-button checkout-button" type="button" disabled={pending} onClick={handleClick}>
-      {pending ? "Loading..." : "Proceed to Checkout"} <Icon name="arrow_forward" />
-    </button>
+    <>
+      {message ? <p className="checkout-block-message">{message}</p> : null}
+      <button className="premium-button checkout-button" type="button" disabled={pending || disabled} onClick={handleClick}>
+        {disabled ? "Checkout unavailable" : pending ? "Loading..." : "Proceed to Checkout"} <Icon name="arrow_forward" />
+      </button>
+    </>
   );
 }
