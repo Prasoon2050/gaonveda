@@ -5,6 +5,11 @@ export const metadata: Metadata = {
   title: "GAONVEDA — Pure Taste From Indian Roots | Heritage Pantry",
   description:
     "Authentic, farm-to-table Indian pantry staples crafted using traditional methods. Cold-pressed oils, stone-ground flours, sun-dried pickles & more — sourced directly from village artisans.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
