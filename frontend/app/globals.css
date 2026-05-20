@@ -4352,7 +4352,8 @@ input:focus-visible {
   align-items: center;
   color: var(--heritage-gold);
   display: flex;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   margin-bottom: 14px;
 }
 
@@ -4364,9 +4365,9 @@ input:focus-visible {
   font-style: normal;
   font-weight: 700;
   letter-spacing: 0.05em;
-  margin-left: 10px;
   padding: 4px 9px;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .review-form {
@@ -10254,4 +10255,202 @@ input:checked + .slider::before {
   color: var(--on-surface-variant);
   font-size: 18px;
   margin: 0;
+}
+
+/* ─── Premium Luxury Loading Screen ─── */
+.gaonveda-loader-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 248, 234, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 99999;
+  transition: opacity 0.3s ease;
+  overflow: hidden;
+}
+
+/* Background ornaments matching the page design patterns */
+.gaonveda-loader-ornament {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  width: 150px;
+}
+
+.gaonveda-loader-ornament-left {
+  left: -2%;
+  scale: 4.2;
+  top: 15%;
+  transform: rotate(120deg);
+}
+
+.gaonveda-loader-ornament-right {
+  right: 4%;
+  scale: 3.2;
+  top: -8%;
+  transform: rotate(100deg);
+}
+
+.gaonveda-loader-ornament img {
+  width: 100%;
+  height: auto;
+  filter: sepia(1) saturate(0.5) hue-rotate(90deg) brightness(0.6);
+}
+
+/* Golden top progress indicator */
+.gaonveda-top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--heritage-leaf), var(--heritage-gold), var(--heritage-leaf));
+  background-size: 200% 100%;
+  width: 100%;
+  animation: loadProgress 2s linear infinite, moveGradient 3s ease infinite;
+  z-index: 3;
+}
+
+.gaonveda-loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.gaonveda-logo-icon-wrapper {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gaonveda-center-logo {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 50%;
+  animation: gentlePulse 2s ease-in-out infinite;
+}
+
+.gaonveda-spinner-circle {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(180, 122, 26, 0.08);
+  border-top-color: var(--heritage-gold);
+  border-radius: 50%;
+  animation: spinSmooth 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.gaonveda-loader-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gaonveda-loader-title {
+  font-family: var(--font-display);
+  color: var(--heritage-ink);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  margin: 0 0 6px 0.28em;
+  text-transform: uppercase;
+}
+
+.gaonveda-loader-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(180, 122, 26, 0.4), transparent);
+  margin: 8px 0;
+  position: relative;
+}
+
+.gaonveda-loader-dot {
+  width: 4px;
+  height: 4px;
+  background: var(--heritage-gold);
+  border-radius: 50%;
+  position: absolute;
+  top: -1.5px;
+  animation: shiverDot 2s ease-in-out infinite;
+}
+
+.gaonveda-loader-subtitle {
+  font-family: var(--font-body);
+  color: var(--heritage-leaf);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0;
+  opacity: 0.85;
+}
+
+@keyframes loadProgress {
+  0% {
+    width: 0%;
+  }
+  50% {
+    width: 70%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes moveGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes spinSmooth {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes gentlePulse {
+  0%, 100% {
+    transform: scale(0.92);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes shiverDot {
+  0%, 100% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
 }

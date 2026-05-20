@@ -83,15 +83,6 @@ export function Navbar({ loggedIn, cartCount }: NavbarProps) {
       {isOpen && (
         <div className="mobile-drawer-overlay" onClick={closeMenu}>
           <div className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="drawer-header">
-              <Link className="brand" href="/" onClick={closeMenu}>
-                <img src="/logo.png" alt="GAONVEDA Logo" />
-                <span>GAONVEDA</span>
-              </Link>
-              <button aria-label="Close menu" onClick={closeMenu}>
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
 
             <div className="drawer-links">
               <Link href="/products" onClick={handleShopClick}>
