@@ -6,6 +6,7 @@ import { isOutOfStock } from "../../lib/inventory";
 import { isLoggedIn } from "../../lib/session";
 import AddressSelector from "./AddressSelector";
 import { Navbar } from "../../components/Navbar";
+import InteractiveOrderSummary from "../../components/InteractiveOrderSummary";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,9 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
 
   let items: any[] = [];
   let totals = { subtotalLabel: "", shippingLabel: "", totalLabel: "" };
+  let numericSubtotal = 0;
+  let numericShipping = 0;
+  let numericItemCount = 0;
 
   // Determine query string to pass to the next step
   const qs = new URLSearchParams();
@@ -56,6 +60,10 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
       totalLabel: formatPrice(total),
     };
     
+    numericSubtotal = subtotal;
+    numericShipping = shipping;
+    numericItemCount = qty;
+
     qs.set("buyNow", "true");
     qs.set("productSlug", productSlug);
     qs.set("quantity", String(qty));
@@ -69,6 +77,9 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
     }
     items = cart.items;
     totals = cart.totals;
+    numericSubtotal = cart.totals.subtotal;
+    numericShipping = cart.totals.shipping;
+    numericItemCount = cart.totals.itemCount;
   }
 
   return (
@@ -125,45 +136,18 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
             <h2>Shipping Address</h2>
             <AddressSelector addresses={profile.user.addresses || []} />
 
-            <div className="checkout-summary-container">
-              <h2>Order Summary</h2>
-              <dl className="checkout-summary-lines">
-                <div>
-                  <dt>Subtotal</dt>
-                  <dd>{totals.subtotalLabel}</dd>
-                </div>
-                <div>
-                  <dt>Shipping</dt>
-                  <dd>{totals.shippingLabel}</dd>
-                </div>
-                <div className="checkout-total-row">
-                  <dt>Total</dt>
-                  <dd>{totals.totalLabel}</dd>
-                </div>
-              </dl>
+            <div className="checkout-summary-container" style={{ borderTop: "none", marginTop: "16px", paddingTop: 0 }}>
+              <h2 style={{ fontSize: "20px", marginBottom: "16px" }}>Order Summary</h2>
+              <InteractiveOrderSummary
+                subtotal={numericSubtotal}
+                shipping={numericShipping}
+                itemCount={numericItemCount}
+                flow="checkout-step1"
+                buyNowQueryString={qs.toString()}
+              />
             </div>
 
-            <div style={{ marginTop: "20px" }}>
-              {defaultAddress ? (
-                <Link 
-                  href={`/checkout/payment?${qs.toString()}`} 
-                  className="premium-button"
-                  style={{ width: "100%", textDecoration: "none" }}
-                >
-                  Continue to Payment <Icon name="arrow_forward" />
-                </Link>
-              ) : (
-                <button 
-                  className="premium-button" 
-                  disabled 
-                  style={{ width: "100%" }}
-                >
-                  Select an address to continue
-                </button>
-              )}
-            </div>
-
-            <p className="secure-checkout">
+            <p className="secure-checkout" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", margin: "16px 0 0", fontSize: "12px", color: "var(--on-surface-variant)", fontWeight: "600" }}>
               <Icon name="lock" /> Secure Checkout
             </p>
           </aside>

@@ -26,11 +26,16 @@ export default function PaymentClient({ isBuyNow, orderData }: PaymentClientProp
     setError("");
 
     try {
+      const promoCode = sessionStorage.getItem("appliedPromoCode") || undefined;
       if (isBuyNow && orderData) {
-        await buyNow({ ...orderData, paymentMethod });
+        await buyNow({ ...orderData, paymentMethod, promoCode });
       } else {
-        await checkoutCart(paymentMethod);
+        await checkoutCart(paymentMethod, promoCode);
       }
+      // Successful order, clear applied promo code from sessionStorage
+      sessionStorage.removeItem("appliedPromoCode");
+      sessionStorage.removeItem("appliedDiscountPercent");
+
       router.push("/profile");
       router.refresh();
     } catch (err) {

@@ -1,5 +1,6 @@
 import { Order } from "../models/Order.js";
 import { Product } from "../models/Product.js";
+import { PromoCode } from "../models/PromoCode.js";
 import { AppError } from "../utils/AppError.js";
 import { formatMoney, toPlain, buildOrderNumber } from "../utils/helpers.js";
 import { getHydratedCart, findProductsBySlug } from "./cart.controller.js";
@@ -9,7 +10,7 @@ const userCancellableStatuses = ["placed", "confirmed"];
 
 // ─── Internal Helpers ──────────────────────────────────────────────
 
-async function createOrderFromItems(user, items, paymentMethod = "Cash on Delivery") {
+async function createOrderFromItems(user, items, paymentMethod = "Cash on Delivery", promoCode = undefined) {
   const productMap = await findProductsBySlug(items.map((item) => item.productSlug));
   const outOfStockProduct = items
     .map((item) => productMap.get(item.productSlug))
@@ -45,13 +46,36 @@ async function createOrderFromItems(user, items, paymentMethod = "Cash on Delive
   const subtotal = orderItems.reduce((sum, item) => sum + item.lineTotal, 0);
   const defaultAddress = user.addresses?.find((address) => address.isDefault) || user.addresses?.[0];
 
+  let discount = 0;
+  let appliedPromo = undefined;
+
+  if (promoCode) {
+    const promo = await PromoCode.findOne({ code: String(promoCode).toUpperCase().trim() });
+    if (!promo) {
+      throw AppError.notFound("Promo code not found");
+    }
+    if (!promo.isActive) {
+      throw AppError.badRequest("Promo code is inactive");
+    }
+    if (promo.expiryDate && new Date() > new Date(promo.expiryDate)) {
+      throw AppError.badRequest("Promo code has expired");
+    }
+
+    discount = Math.round(subtotal * (promo.discountPercent / 100));
+    appliedPromo = promo.code;
+  }
+
+  const total = Math.max(0, subtotal - discount + shippingFee);
+
   return Order.create({
     orderNumber: buildOrderNumber(),
     user: user._id,
     items: orderItems,
     subtotal,
     shipping: shippingFee,
-    total: subtotal + shippingFee,
+    total,
+    promoCode: appliedPromo,
+    discount,
     shippingAddress: defaultAddress,
     paymentMethod,
     paymentStatus: paymentMethod === "Cash on Delivery" ? "pending" : "paid",
@@ -65,8 +89,8 @@ async function createOrderFromItems(user, items, paymentMethod = "Cash on Delive
  */
 export async function checkout(req, res, next) {
   try {
-    const { paymentMethod } = req.body || {};
-    const order = await createOrderFromItems(req.user, req.user.cart.map(toPlain), paymentMethod);
+    const { paymentMethod, promoCode } = req.body || {};
+    const order = await createOrderFromItems(req.user, req.user.cart.map(toPlain), paymentMethod, promoCode);
 
     req.user.cart = [];
     await req.user.save();
@@ -91,7 +115,7 @@ export async function buyNow(req, res, next) {
       throw AppError.notFound("Product not found");
     }
 
-    const { paymentMethod } = req.body || {};
+    const { paymentMethod, promoCode } = req.body || {};
     const order = await createOrderFromItems(req.user, [
       {
         productSlug: product.slug,
@@ -99,7 +123,7 @@ export async function buyNow(req, res, next) {
         quantity: Math.max(Number(req.body.quantity || 1), 1),
         unitPrice: product.salePrice || product.price,
       },
-    ], paymentMethod);
+    ], paymentMethod, promoCode);
 
     res.status(201).json({ order: { ...toPlain(order), totalLabel: formatMoney(order.total) } });
   } catch (error) {

@@ -9,12 +9,20 @@ async function apiRequest<T>(path: string, options: RequestInit & { body?: BodyI
     },
   });
 
+  const text = await response.text();
+  let payload: any = {};
+  try {
+    payload = text ? JSON.parse(text) : {};
+  } catch (err) {
+    // Gracefully handle empty or non-JSON body
+    payload = {};
+  }
+
   if (!response.ok) {
-    const payload = await response.json().catch(() => ({}));
     throw new Error(payload.message || "Request failed");
   }
 
-  return (await response.json()) as T;
+  return payload as T;
 }
 
 export function addCartItem(body: JsonBody) {
@@ -38,10 +46,13 @@ export function removeCartItem(productSlug: string, selectedSize?: string) {
   });
 }
 
-export function checkoutCart(paymentMethod?: string) {
+export function checkoutCart(paymentMethod?: string, promoCode?: string) {
   return apiRequest("/api/checkout", {
     method: "POST",
-    body: JSON.stringify(paymentMethod ? { paymentMethod } : {}),
+    body: JSON.stringify({
+      ...(paymentMethod ? { paymentMethod } : {}),
+      ...(promoCode ? { promoCode } : {}),
+    }),
   });
 }
 
@@ -110,5 +121,18 @@ export function updateAdminProduct(productSlug: string, body: JsonBody) {
   return apiRequest(`/api/admin/products/${productSlug}`, {
     method: "PATCH",
     body: JSON.stringify(body),
+  });
+}
+
+export function deleteAdminProduct(productSlug: string) {
+  return apiRequest(`/api/admin/products/${productSlug}`, {
+    method: "DELETE",
+  });
+}
+
+export function validatePromoCode(code: string) {
+  return apiRequest<{ valid: boolean; discountPercent: number; code: string }>("/api/cart/promo/validate", {
+    method: "POST",
+    body: JSON.stringify({ code }),
   });
 }

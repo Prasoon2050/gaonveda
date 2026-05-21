@@ -76,8 +76,9 @@ export function ratingIcons(rating = 0) {
   });
 }
 
-export async function getProducts() {
-  return getJson<Product[]>("/api/products", fallbackProducts.filter((product) => product.isListed !== false));
+export async function getProducts(search?: string) {
+  const path = search ? `/api/products?search=${encodeURIComponent(search)}` : "/api/products";
+  return getJson<Product[]>(path, fallbackProducts.filter((product) => product.isListed !== false));
 }
 
 export async function getProduct(slug: string) {
@@ -86,10 +87,41 @@ export async function getProduct(slug: string) {
 }
 
 export async function getCart() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(authCookieName)?.value;
+    if (!token) {
+      return {
+        items: [],
+        totals: {
+          itemCount: 0,
+          subtotal: 0,
+          subtotalLabel: "₹0",
+          shipping: 0,
+          shippingLabel: "₹0",
+          total: 0,
+          totalLabel: "₹0",
+        },
+      };
+    }
+  } catch {
+    // Fall through to standard fetch/fallback if cookies() is called in an unsupported context
+  }
   return getJson<CartResponse>("/api/cart", fallbackCart);
 }
 
 export async function getWishlist() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(authCookieName)?.value;
+    if (!token) {
+      return {
+        items: [],
+      };
+    }
+  } catch {
+    // Fall through to standard fetch/fallback if cookies() is called in an unsupported context
+  }
   return getJson<WishlistResponse>("/api/wishlist", fallbackWishlist);
 }
 

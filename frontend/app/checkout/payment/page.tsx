@@ -6,6 +6,7 @@ import { isOutOfStock } from "../../../lib/inventory";
 import { isLoggedIn } from "../../../lib/session";
 import PaymentClient from "./PaymentClient";
 import { Navbar } from "../../../components/Navbar";
+import InteractiveOrderSummary from "../../../components/InteractiveOrderSummary";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,9 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
   let orderData: any = null;
   let items: any[] = [];
   let totals = { subtotalLabel: "", shippingLabel: "", totalLabel: "" };
+  let numericSubtotal = 0;
+  let numericShipping = 0;
+  let numericItemCount = 0;
 
   const qs = new URLSearchParams();
 
@@ -61,6 +65,10 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
       totalLabel: formatPrice(total),
     };
     
+    numericSubtotal = subtotal;
+    numericShipping = shipping;
+    numericItemCount = qty;
+
     orderData = { productSlug, quantity: qty, selectedSize: selectedSize || product.pack };
     
     qs.set("buyNow", "true");
@@ -76,6 +84,9 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
     }
     items = cart.items;
     totals = cart.totals;
+    numericSubtotal = cart.totals.subtotal;
+    numericShipping = cart.totals.shipping;
+    numericItemCount = cart.totals.itemCount;
     orderData = null;
   }
 
@@ -157,22 +168,15 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
               orderData={orderData} 
             />
 
-            <div className="checkout-summary-container">
-              <h2>Order Summary</h2>
-              <dl className="checkout-summary-lines">
-                <div>
-                  <dt>Subtotal</dt>
-                  <dd>{totals.subtotalLabel}</dd>
-                </div>
-                <div>
-                  <dt>Shipping</dt>
-                  <dd>{totals.shippingLabel}</dd>
-                </div>
-                <div className="checkout-total-row">
-                  <dt>Total</dt>
-                  <dd>{totals.totalLabel}</dd>
-                </div>
-              </dl>
+            <div className="checkout-summary-container" style={{ borderTop: "none", marginTop: "16px", paddingTop: 0 }}>
+              <h2 style={{ fontSize: "20px", marginBottom: "16px" }}>Order Summary</h2>
+              <InteractiveOrderSummary
+                subtotal={numericSubtotal}
+                shipping={numericShipping}
+                itemCount={numericItemCount}
+                flow="checkout-step2"
+                buyNowQueryString={qs.toString()}
+              />
             </div>
 
             <p className="secure-checkout">

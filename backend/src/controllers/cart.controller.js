@@ -1,4 +1,5 @@
 import { Product } from "../models/Product.js";
+import { PromoCode } from "../models/PromoCode.js";
 import { AppError } from "../utils/AppError.js";
 import { formatMoney, toPlain } from "../utils/helpers.js";
 
@@ -160,6 +161,35 @@ export async function removeCartItem(req, res, next) {
     req.user.cart = req.user.cart.filter((item) => !cartItemMatches(item, req.params.slug, selectedSize));
     await req.user.save();
     res.json(await getHydratedCart(req.user));
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/cart/promo/validate
+ */
+export async function validatePromoCode(req, res, next) {
+  try {
+    const { code } = req.body;
+    if (!code) {
+      throw AppError.badRequest("Promo code is required");
+    }
+
+    const promo = await PromoCode.findOne({ code: String(code).toUpperCase().trim() });
+    if (!promo) {
+      return res.status(404).json({ valid: false, message: "Invalid promo code" });
+    }
+
+    if (!promo.isActive) {
+      return res.status(400).json({ valid: false, message: "Promo code is inactive" });
+    }
+
+    if (promo.expiryDate && new Date() > new Date(promo.expiryDate)) {
+      return res.status(400).json({ valid: false, message: "Promo code has expired" });
+    }
+
+    res.json({ valid: true, discountPercent: promo.discountPercent, code: promo.code });
   } catch (error) {
     next(error);
   }

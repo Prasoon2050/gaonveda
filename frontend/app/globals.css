@@ -6223,6 +6223,9 @@ h1, h2, h3 {
     url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E"),
     linear-gradient(160deg, rgba(18,53,31,0.018) 0%, transparent 60%),
     var(--background) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100vh !important;
 }
 
 /* Restore default natural relative layouts without z-index overrides so everything sits cleanly above the Layer -1 background ornaments */
@@ -8768,9 +8771,13 @@ input:checked + .slider::before {
 .wishlist-main,
 .profile-layout-container {
   padding-top: 124px !important;
+  flex: 1 0 auto !important;
+  width: 100% !important;
 }
 .pdp-main {
   padding-top: 124px !important;
+  flex: 1 0 auto !important;
+  width: 100% !important;
 }
 
 /* Hide Wishlist, Profile, Login, and Cart links on mobile when the drawer toggle is visible */
@@ -10032,9 +10039,10 @@ input:checked + .slider::before {
 @media (min-width: 769px) {
   .cart-item {
     min-height: 200px !important;
-    height: 200px !important;
+    height: auto !important;
     box-sizing: border-box !important;
     align-items: center !important;
+    padding: 24px 20px !important;
   }
 
   .cart-item-image {
@@ -10045,11 +10053,12 @@ input:checked + .slider::before {
 
   .cart-item-body {
     min-height: 160px !important;
-    height: 160px !important;
+    height: auto !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
     box-sizing: border-box !important;
+    gap: 8px !important;
   }
 
   .cart-item-bottom {

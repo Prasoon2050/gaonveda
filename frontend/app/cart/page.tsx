@@ -6,7 +6,8 @@ import { ProductImage } from "../../components/ProductImage";
 import { getCart } from "../../lib/api";
 import { isOutOfStock } from "../../lib/inventory";
 import { isLoggedIn } from "../../lib/session";
-import { CartItemControls, CheckoutButton, RemoveCartItemButton } from "./CartItemControls";
+import { CartItemControls, RemoveCartItemButton } from "./CartItemControls";
+import InteractiveOrderSummary from "../../components/InteractiveOrderSummary";
 
 export const dynamic = "force-dynamic";
 
@@ -79,29 +80,15 @@ export default async function CartPage() {
 
             <aside className="order-summary glass-panel" aria-label="Order summary">
               <h2>Order Summary</h2>
-              <div className="summary-lines">
-                <p>
-                  <span>Subtotal ({cart.totals.itemCount} items)</span>
-                  <strong>{cart.totals.subtotalLabel}</strong>
-                </p>
-                <p>
-                  <span>Estimated Shipping</span>
-                  <strong>{cart.totals.shippingLabel}</strong>
-                </p>
-                <p>
-                  <span>Taxes</span>
-                  <strong>Calculated at checkout</strong>
-                </p>
-              </div>
-              <div className="summary-total">
-                <span>Total</span>
-                <strong>{cart.totals.totalLabel}</strong>
-              </div>
-              <CheckoutButton
-                disabled={Boolean(outOfStockItem)}
-                message={outOfStockItem ? `${outOfStockItem.product?.title || outOfStockItem.productSlug} is out of stock. Remove it before checkout.` : undefined}
+              <InteractiveOrderSummary
+                subtotal={cart.totals.subtotal}
+                shipping={cart.totals.shipping}
+                itemCount={cart.totals.itemCount}
+                flow="cart"
+                disabledCheckout={Boolean(outOfStockItem)}
+                disabledMessage={outOfStockItem ? `${outOfStockItem.product?.title || outOfStockItem.productSlug} is out of stock. Remove it before checkout.` : undefined}
               />
-              <p className="secure-checkout">
+              <p className="secure-checkout" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", margin: "16px 0 0", fontSize: "12px", color: "var(--on-surface-variant)", fontWeight: "600" }}>
                 <Icon name="lock" /> Secure Checkout
               </p>
             </aside>

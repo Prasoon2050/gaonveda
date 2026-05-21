@@ -4,6 +4,7 @@ import { connectDB } from "./config/db.js";
 import { Order } from "./models/Order.js";
 import { Product } from "./models/Product.js";
 import { User } from "./models/User.js";
+import { PromoCode } from "./models/PromoCode.js";
 import { products, users, cartItems, wishlistItems } from "./data/seedData.js";
 import { hashPassword } from "./utils/auth.js";
 
@@ -56,6 +57,16 @@ async function seed() {
 
   // Clean up old orders for the seed user
   await Order.deleteMany({ user: customer._id });
+
+  console.log("Seeding default promo codes...");
+  await PromoCode.deleteMany({});
+  await PromoCode.create([
+    { code: "GAONVEDA10", discountPercent: 10, isActive: true },
+    { code: "GAONVEDA20", discountPercent: 20, isActive: true },
+    { code: "WELCOME50", discountPercent: 50, isActive: true },
+    { code: "EXPIRED50", discountPercent: 50, isActive: false },
+  ]);
+  console.log("GAONVEDA: Seeded default promo codes manually.");
 
   // Drop the old collections if they exist
   const collectionsToDrop = ["reviews", "carts", "wishlists"];

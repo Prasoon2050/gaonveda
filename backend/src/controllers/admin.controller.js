@@ -273,3 +273,20 @@ export async function updateAdminProduct(req, res, next) {
     next(error);
   }
 }
+
+/**
+ * DELETE /api/admin/products/:slug
+ */
+export async function deleteAdminProduct(req, res, next) {
+  try {
+    const product = await Product.findOneAndDelete({ slug: req.params.slug });
+
+    if (!product) {
+      throw AppError.notFound("Product not found");
+    }
+
+    res.json({ message: "Product deleted successfully", slug: req.params.slug });
+  } catch (error) {
+    next(error);
+  }
+}

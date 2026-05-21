@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createAdminProduct, updateAdminOrder, updateAdminProduct } from "../../lib/client-api";
+import { createAdminProduct, updateAdminOrder, updateAdminProduct, deleteAdminProduct } from "../../lib/client-api";
 import type { AdminOrdersResponse, AdminProductsResponse, AdminSummary, Order, Product } from "../../lib/types";
 
 type AdminDashboardProps = {
@@ -157,6 +157,7 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
   const [message, setMessage] = useState("");
   const [pendingKey, setPendingKey] = useState("");
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const router = useRouter();
 
   const inventoryStats = useMemo(() => {
@@ -171,6 +172,22 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
     router.push("/login");
     router.refresh();
   };
+
+  async function handleDeleteProduct(slug: string) {
+    setPendingKey(`delete-${slug}`);
+    setMessage("");
+    try {
+      await deleteAdminProduct(slug);
+      setProducts((current) => current.filter((p) => p.slug !== slug));
+      setMessage("Product deleted successfully.");
+      setProductToDelete(null);
+      router.refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not delete product.");
+    } finally {
+      setPendingKey("");
+    }
+  }
 
   async function saveOrder(orderId: string, formData: FormData) {
     setPendingKey(`order-${orderId}`);
@@ -329,6 +346,22 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
             <div className="modal-actions">
               <button className="btn-cancel" onClick={() => setShowSignOutConfirm(false)}>Cancel</button>
               <button className="btn-confirm" onClick={handleSignOut}>Sign Out</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {productToDelete && (
+        <div className="modal-overlay" onClick={() => setProductToDelete(null)}>
+          <div className="modal-content signout-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="material-symbols-outlined modal-icon" style={{ color: "#dc3545", background: "rgba(220, 53, 69, 0.1)" }}>delete</span>
+              <h2 style={{ color: "#dc3545" }}>Delete Product</h2>
+            </div>
+            <p>Are you sure you want to completely delete <strong>{productToDelete.title}</strong>? This action will permanently remove it from the database and inventory, and cannot be undone.</p>
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setProductToDelete(null)}>Cancel</button>
+              <button className="btn-confirm" style={{ background: "#dc3545", color: "white" }} onClick={() => handleDeleteProduct(productToDelete.slug)}>Delete</button>
             </div>
           </div>
         </div>
@@ -739,7 +772,16 @@ export function AdminDashboard({ summary, ordersData, productsData, adminName }:
                       <ImageLinkFields initialLinks={product.images || []} />
                     </div>
 
-                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "12px" }}>
+                      <button
+                        className="premium-button"
+                        style={{ background: "rgba(220, 53, 69, 0.12)", border: "1px solid rgba(220, 53, 69, 0.3)", color: "#dc3545" }}
+                        type="button"
+                        onClick={() => setProductToDelete(product)}
+                        disabled={pendingKey === `delete-${product.slug}`}
+                      >
+                        <Icon name="delete" /> Delete Product
+                      </button>
                       <button className="premium-button" type="submit" disabled={pendingKey === `product-${product.slug}`}>
                         <Icon name="save" /> {pendingKey === `product-${product.slug}` ? "Saving..." : "Update Details"}
                       </button>

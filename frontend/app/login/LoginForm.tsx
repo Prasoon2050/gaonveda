@@ -40,7 +40,15 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const result = await response.json();
+      
+      const text = await response.text();
+      let result: any = {};
+      try {
+        result = text ? JSON.parse(text) : {};
+      } catch (err) {
+        console.error("Failed to parse auth response in LoginForm:", err, text);
+        result = { message: "Authentication failed due to a server error." };
+      }
 
       if (!response.ok) {
         throw new Error(result.message || "Authentication failed");

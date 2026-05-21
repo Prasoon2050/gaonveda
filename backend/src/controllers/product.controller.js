@@ -6,9 +6,19 @@ import { AppError } from "../utils/AppError.js";
  * GET /api/products
  * Returns all listed products (without the full reviews array for list performance).
  */
-export async function listProducts(_req, res, next) {
+export async function listProducts(req, res, next) {
   try {
-    const products = await Product.find({ isListed: true }).sort({ sortOrder: 1 }).lean({ virtuals: true });
+    const { search } = req.query;
+    const filter = { isListed: true };
+    if (search) {
+      filter.$or = [
+        { title: { $regex: String(search), $options: "i" } },
+        { subtitle: { $regex: String(search), $options: "i" } },
+        { description: { $regex: String(search), $options: "i" } },
+        { category: { $regex: String(search), $options: "i" } },
+      ];
+    }
+    const products = await Product.find(filter).sort({ sortOrder: 1 }).lean({ virtuals: true });
 
     // Strip the full reviews array from the list response for performance
     const slim = products.map(({ reviews, ...product }) => product);

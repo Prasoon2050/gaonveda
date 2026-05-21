@@ -20,6 +20,8 @@ const orderSchema = new mongoose.Schema(
     subtotal: { type: Number, required: true },
     shipping: { type: Number, required: true },
     total: { type: Number, required: true },
+    promoCode: String,
+    discount: { type: Number, default: 0 },
     status: {
       type: String,
       enum: ["placed", "confirmed", "packed", "shipped", "delivered", "cancelled"],
